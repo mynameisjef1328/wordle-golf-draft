@@ -5,42 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wordle Golf Scorecard</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f9f9f9;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #999;
-      color: white;
-    }
-    .under-par {
-      background-color: lightgreen;
-    }
-    .over-par {
-      background-color: lightcoral;
-    }
-    .even-par {
-      background-color: white;
-    }
-    input[type="number"] {
-  width: 50px;
-  text-align: center;
-  display: inline-block;
-  vertical-align: middle;
-}
-    input[type="text"] {
-      width: 100px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #999; color: white; }
+    .under-par { background-color: lightgreen; }
+    .over-par  { background-color: lightcoral; }
+    .even-par  { background-color: white; }
+    input[type="number"] { width: 50px; text-align: center; display: inline-block; vertical-align: middle; }
+    input[type="text"] { width: 100px; }
   </style>
 </head>
 <body>
@@ -58,261 +31,233 @@
         <th>+/-</th>
       </tr>
       <tr>
-  <th></th>
-  <script>
-    for (let i = 1; i <= 18; i++) {
-      document.write(`<th>${i}</th>`);
-    }
-  </script>
-  <th>Par</th>
-  <th></th>
-</tr>
-      <tr id="parRow">
+        <th></th>
+        <script>
+          for (let i = 1; i <= 18; i++) document.write(`<th>${i}</th>`);
+        </script>
         <th>Par</th>
+        <th></th>
       </tr>
+      <tr id="parRow"><th>Par</th></tr>
     </thead>
-        <tbody>
-      <script type="module">
-        // ---------- Firebase setup ----------
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-        import {
-          getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    <tbody></tbody>
+  </table>
 
-        // TODO: paste your real config here
-        const firebaseConfig = {
-          apiKey: "YOUR_KEY",
-          authDomain: "YOUR_APP.firebaseapp.com",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_APP.appspot.com",
-          messagingSenderId: "YOUR_SENDER_ID",
-          appId: "YOUR_APP_ID"
-        };
+  <!-- MOVE THE SCRIPT OUTSIDE TBODY -->
+  <script type="module">
+    // ---------- Firebase setup ----------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    // TODO: paste your real config here
+    const firebaseConfig = {
+      apiKey: "YOUR_KEY",
+      authDomain: "YOUR_APP.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_APP.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-        // ---------- Existing data ----------
-        const courses = {
-          'Pebble Beach': [4,4,3,4,5,4,4,3,5,4,3,4,5,4,4,3,4,5],
-          'St. Andrews':  [4,5,4,3,4,4,5,3,4,4,3,5,4,4,3,4,5,4],
-          'Augusta':      [5,4,3,4,5,3,4,4,4,3,5,4,4,3,4,5,4,3],
-          'Pine Valley':  [4,3,5,4,4,3,4,5,4,4,3,4,4,5,3,4,5,4],
-          'Torrey Pines': [4,4,5,3,4,5,4,3,4,4,4,5,3,4,4,5,3,4],
-          'TPC Sawgrass': [4,4,3,5,4,3,4,5,4,3,4,5,4,4,3,5,4,3],
-          'Bethpage Black': [4,5,3,4,4,5,4,4,3,4,5,3,4,4,5,3,4,4],
-          'Whistling Straits': [4,3,5,4,4,5,3,4,4,5,4,3,4,4,5,4,3,4],
-          'Kiawah Island': [4,4,5,3,4,3,4,5,4,4,4,5,3,4,4,5,3,4],
-          'Bully Pulpit': [3,4,5,4,3,5,4,4,4,5,4,3,4,5,4,4,3,4]
-        };
+    let app, db;
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+    } catch (e) {
+      console.error("Firebase init error:", e);
+    }
 
-        const parRow = document.getElementById('parRow');
-        const courseSelect = document.getElementById('courseSelect');
-        const tbody = document.querySelector('tbody');
+    // ---------- Data ----------
+    const courses = {
+      'Pebble Beach': [4,4,3,4,5,4,4,3,5,4,3,4,5,4,4,3,4,5],
+      'St. Andrews':  [4,5,4,3,4,4,5,3,4,4,3,5,4,4,3,4,5,4],
+      'Augusta':      [5,4,3,4,5,3,4,4,4,3,5,4,4,3,4,5,4,3],
+      'Pine Valley':  [4,3,5,4,4,3,4,5,4,4,3,4,4,5,3,4,5,4],
+      'Torrey Pines': [4,4,5,3,4,5,4,3,4,4,4,5,3,4,4,5,3,4],
+      'TPC Sawgrass': [4,4,3,5,4,3,4,5,4,3,4,5,4,4,3,5,4,3],
+      'Bethpage Black': [4,5,3,4,4,5,4,4,3,4,5,3,4,4,5,3,4,4],
+      'Whistling Straits': [4,3,5,4,4,5,3,4,4,5,4,3,4,4,5,4,3,4],
+      'Kiawah Island': [4,4,5,3,4,3,4,5,4,4,4,5,3,4,4,5,3,4],
+      'Bully Pulpit': [3,4,5,4,3,5,4,4,4,5,4,3,4,5,4,4,3,4]
+    };
 
-        // Populate course dropdown
-        Object.keys(courses).forEach(course => {
-          const option = document.createElement('option');
-          option.value = course;
-          option.textContent = course;
-          courseSelect.appendChild(option);
+    const parRow        = document.getElementById('parRow');
+    const courseSelect  = document.getElementById('courseSelect');
+    const tbody         = document.querySelector('#scorecard tbody');
+
+    // Populate course dropdown
+    Object.keys(courses).forEach(course => {
+      const option = document.createElement('option');
+      option.value = course;
+      option.textContent = course;
+      courseSelect.appendChild(option);
+    });
+
+    let currentPar = [];
+    let unsubscribe = null;
+    let applyingRemote = false;
+
+    function updateParRow(parValues) {
+      parRow.innerHTML = '';
+      parRow.innerHTML += '<th></th>';
+      parValues.forEach(par => {
+        const th = document.createElement('th');
+        th.textContent = par;
+        parRow.appendChild(th);
+      });
+      const parTotal = parValues.reduce((sum, p) => sum + p, 0);
+      parRow.innerHTML += `<th>${parTotal}</th>`;
+      parRow.innerHTML += '<th></th>';
+    }
+
+    function buildPlayerRow(name = '', rowIndex = 0, savedScores = []) {
+      const row = document.createElement('tr');
+
+      const nameCell = document.createElement('td');
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = name;
+      nameInput.addEventListener('input', () => saveScoresToFirestore());
+      nameCell.appendChild(nameInput);
+      row.appendChild(nameCell);
+
+      for (let i = 0; i < 18; i++) {
+        const cell = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = 1;
+        input.value = savedScores[i] || '';
+        input.addEventListener('input', () => {
+          calculate(row);
+          saveScoresToFirestore();
         });
+        cell.appendChild(input);
+        row.appendChild(cell);
+      }
 
-        let currentPar = [];
-        let unsubscribe = null;        // Firestore listener for the current course
-        let applyingRemote = false;    // prevents write loops
+      const totalCell = document.createElement('td');
+      totalCell.className = 'total';
+      totalCell.textContent = '0';
+      row.appendChild(totalCell);
 
-        function updateParRow(parValues) {
-          parRow.innerHTML = '';
-          parRow.innerHTML += '<th></th>';
-          parValues.forEach(par => {
-            const th = document.createElement('th');
-            th.textContent = par;
-            parRow.appendChild(th);
-          });
-          const parTotal = parValues.reduce((sum, p) => sum + p, 0);
-          parRow.innerHTML += `<th>${parTotal}</th>`;
-          parRow.innerHTML += '<th></th>';
+      const diffCell = document.createElement('td');
+      diffCell.className = 'diff';
+      diffCell.textContent = '0';
+      row.appendChild(diffCell);
+
+      setTimeout(() => calculate(row), 0);
+      return row;
+    }
+
+    function calculate(row) {
+      const inputs = row.querySelectorAll('input[type="number"]');
+      let total = 0;
+      let parTotal = 0;
+
+      inputs.forEach((input, index) => {
+        const val = parseInt(input.value);
+        const par = currentPar[index];
+        const cell = input.parentElement;
+        cell.className = '';
+        if (!isNaN(val)) {
+          total += val;
+          parTotal += par;
+          if (val < par) cell.className = 'under-par';
+          else if (val > par) cell.className = 'over-par';
+          else cell.className = 'even-par';
         }
+      });
 
-        function buildPlayerRow(name = '', rowIndex = 0, savedScores = []) {
-          const row = document.createElement('tr');
+      row.querySelector('.total').textContent = total || '0';
+      const diff = total - parTotal;
+      row.querySelector('.diff').textContent = total ? (diff > 0 ? `+${diff}` : `${diff}`) : '0';
+    }
 
-          const nameCell = document.createElement('td');
-          const nameInput = document.createElement('input');
-          nameInput.type = 'text';
-          nameInput.value = name;
-          nameInput.addEventListener('input', () => saveScoresToFirestore());
-          nameCell.appendChild(nameInput);
-          row.appendChild(nameCell);
+    // ---------- Firestore helpers ----------
+    const buildDefaultPlayers = () =>
+      Array.from({ length: 4 }, (_, i) => ({ name: `Player ${i + 1}`, scores: [] }));
 
-          for (let i = 0; i < 18; i++) {
-            const cell = document.createElement('td');
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.min = 1;
-            input.value = savedScores[i] || '';
-            input.addEventListener('input', () => {
-              calculate(row);
-              saveScoresToFirestore();
-            });
-            cell.appendChild(input);
-            row.appendChild(cell);
-          }
+    function readTableData() {
+      const data = { course: courseSelect.value, players: [] };
+      tbody.querySelectorAll('tr').forEach(row => {
+        const name = row.querySelector('input[type="text"]')?.value || '';
+        const scores = Array.from(row.querySelectorAll('input[type="number"]')).map(i => i.value);
+        data.players.push({ name, scores });
+      });
+      return data;
+    }
 
-          const totalCell = document.createElement('td');
-          totalCell.className = 'total';
-          totalCell.textContent = '0';
-          row.appendChild(totalCell);
+    async function saveScoresToFirestore() {
+      if (applyingRemote || !db) return;
+      const data = readTableData();
+      const ref = doc(db, 'wordleScorecards', data.course);
+      await setDoc(ref, { course: data.course, players: data.players, updatedAt: serverTimestamp() }, { merge: true });
+    }
 
-          const diffCell = document.createElement('td');
-          diffCell.className = 'diff';
-          diffCell.textContent = '0';
-          row.appendChild(diffCell);
+    function sameData(a, b) {
+      try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
+    }
 
-          // Calculate after fields exist
-          setTimeout(() => calculate(row), 0);
-          return row;
-        }
+    function renderFromData(docData) {
+      tbody.innerHTML = '';
+      const players = docData?.players?.length ? docData.players : buildDefaultPlayers();
+      players.forEach((p, i) => tbody.appendChild(buildPlayerRow(p.name, i, p.scores || [])));
+    }
 
-        function calculate(row) {
-          const inputs = row.querySelectorAll('input[type="number"]');
-          let total = 0;
-          let parTotal = 0;
+    async function ensureDocExists(courseName) {
+      if (!db) return;
+      const ref = doc(db, 'wordleScorecards', courseName);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        await setDoc(ref, { course: courseName, players: buildDefaultPlayers(), updatedAt: serverTimestamp() });
+      }
+    }
 
-          inputs.forEach((input, index) => {
-            const val = parseInt(input.value);
-            const par = currentPar[index];
-            const cell = input.parentElement;
-            cell.className = '';
-            if (!isNaN(val)) {
-              total += val;
-              parTotal += par;
-              if (val < par) cell.className = 'under-par';
-              else if (val > par) cell.className = 'over-par';
-              else cell.className = 'even-par';
-            }
-          });
+    async function attachListenerForCourse(courseName) {
+      if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+      if (!db) return; // offline or config missing
 
-          row.querySelector('.total').textContent = total || '0';
-          const diff = total - parTotal;
-          row.querySelector('.diff').textContent = total ? (diff > 0 ? `+${diff}` : `${diff}`) : '0';
-        }
+      await ensureDocExists(courseName);
+      const ref = doc(db, 'wordleScorecards', courseName);
 
-        // ---------- Firestore helpers ----------
-        function courseDocRef(courseName) {
-          return doc(db, 'wordleScorecards', courseName);
-        }
+      unsubscribe = onSnapshot(ref, snap => {
+        if (!snap.exists()) return;
+        const serverData = snap.data();
+        const localData = readTableData();
 
-        function readTableData() {
-          const data = {
-            course: courseSelect.value,
-            players: []
-          };
-          tbody.querySelectorAll('tr').forEach(row => {
-            const name = row.querySelector('input[type="text"]')?.value || '';
-            const scores = Array.from(row.querySelectorAll('input[type="number"]')).map(i => i.value);
-            data.players.push({ name, scores });
-          });
-          return data;
-        }
-
-        async function saveScoresToFirestore() {
-          if (applyingRemote) return; // do not echo writes
-          const data = readTableData();
-          const ref = courseDocRef(data.course);
-          await setDoc(ref, {
-            course: data.course,
-            players: data.players,
-            updatedAt: serverTimestamp()
-          }, { merge: true });
-        }
-
-        function sameData(a, b) {
-          try {
-            return JSON.stringify(a) === JSON.stringify(b);
-          } catch {
-            return false;
-          }
-        }
-
-        function buildDefaultPlayers() {
-          return Array.from({ length: 4 }, (_, i) => ({ name: `Player ${i + 1}`, scores: [] }));
-        }
-
-        function renderFromData(docData) {
-          tbody.innerHTML = '';
-          const players = docData?.players?.length ? docData.players : buildDefaultPlayers();
-          players.forEach((p, i) => {
-            const row = buildPlayerRow(p.name, i, p.scores || []);
-            tbody.appendChild(row);
-          });
-        }
-
-        async function ensureDocExists(courseName) {
-          const ref = courseDocRef(courseName);
-          const snap = await getDoc(ref);
-          if (!snap.exists()) {
-            await setDoc(ref, {
-              course: courseName,
-              players: buildDefaultPlayers(),
-              updatedAt: serverTimestamp()
-            });
-          }
-        }
-
-        async function attachListenerForCourse(courseName) {
-          // detach previous
-          if (unsubscribe) {
-            unsubscribe();
-            unsubscribe = null;
-          }
-          await ensureDocExists(courseName);
-
-          const ref = courseDocRef(courseName);
-          unsubscribe = onSnapshot(ref, snap => {
-            if (!snap.exists()) return;
-            const serverData = snap.data();
-
-            // Compare with current table state to avoid useless reflow
-            const localData = readTableData();
-            if (!sameData(
-              { course: localData.course, players: localData.players },
-              { course: serverData.course, players: serverData.players }
-            )) {
-              applyingRemote = true;
-              currentPar = courses[courseName];
-              updateParRow(currentPar);
-              renderFromData(serverData);
-              applyingRemote = false;
-            }
-          });
-        }
-
-        async function loadScorecard(courseName) {
+        if (!sameData(
+          { course: localData.course, players: localData.players },
+          { course: serverData.course, players: serverData.players }
+        )) {
+          applyingRemote = true;
           currentPar = courses[courseName];
           updateParRow(currentPar);
-
-          // initial render comes from Firestore listener
-          await attachListenerForCourse(courseName);
+          renderFromData(serverData);
+          applyingRemote = false;
         }
+      });
+    }
 
-        // ---------- Boot ----------
-        // Build the "1..18" header cells using document.write, keep as you had it
-        // The <tr> with hole numbers is already emitted above by your document.write
+    async function loadScorecard(courseName) {
+      currentPar = courses[courseName];
+      updateParRow(currentPar);
 
-        // Load last course seen, or default to first option
-        // We use a tiny key in localStorage just to remember which course to auto-open.
-        const last = localStorage.getItem('lastCourse');
-        courseSelect.value = last && courses[last] ? last : courseSelect.options[0].value;
-        loadScorecard(courseSelect.value);
+      // Render something immediately so the table never looks empty
+      renderFromData({ players: buildDefaultPlayers() });
 
-        courseSelect.addEventListener('change', e => {
-          localStorage.setItem('lastCourse', e.target.value);
-          loadScorecard(e.target.value);
-        });
-      </script>
-    </tbody>
-  </table>
+      // Then attach realtime sync
+      await attachListenerForCourse(courseName);
+    }
+
+    // ---------- Boot ----------
+    const last = localStorage.getItem('lastCourse');
+    courseSelect.value = last && courses[last] ? last : Object.keys(courses)[0];
+    loadScorecard(courseSelect.value);
+
+    courseSelect.addEventListener('change', e => {
+      localStorage.setItem('lastCourse', e.target.value);
+      loadScorecard(e.target.value);
+    });
+  </script>
 </body>
 </html>
