@@ -71,8 +71,28 @@
         <th>Par</th>
       </tr>
     </thead>
-    <tbody>
-      <script>
+        <tbody>
+      <script type="module">
+        // ---------- Firebase setup ----------
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+          getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+        // TODO: paste your real config here
+        const firebaseConfig = {
+          apiKey: "YOUR_KEY",
+          authDomain: "YOUR_APP.firebaseapp.com",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_APP.appspot.com",
+          messagingSenderId: "YOUR_SENDER_ID",
+          appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ---------- Existing data ----------
         const courses = {
           'Pebble Beach': [4,4,3,4,5,4,4,3,5,4,3,4,5,4,4,3,4,5],
           'St. Andrews':  [4,5,4,3,4,4,5,3,4,4,3,5,4,4,3,4,5,4],
@@ -90,6 +110,7 @@
         const courseSelect = document.getElementById('courseSelect');
         const tbody = document.querySelector('tbody');
 
+        // Populate course dropdown
         Object.keys(courses).forEach(course => {
           const option = document.createElement('option');
           option.value = course;
@@ -98,28 +119,22 @@
         });
 
         let currentPar = [];
+        let unsubscribe = null;        // Firestore listener for the current course
+        let applyingRemote = false;    // prevents write loops
 
-     function updateParRow(parValues) {
-  // Clear the row
-  parRow.innerHTML = '';
+        function updateParRow(parValues) {
+          parRow.innerHTML = '';
+          parRow.innerHTML += '<th></th>';
+          parValues.forEach(par => {
+            const th = document.createElement('th');
+            th.textContent = par;
+            parRow.appendChild(th);
+          });
+          const parTotal = parValues.reduce((sum, p) => sum + p, 0);
+          parRow.innerHTML += `<th>${parTotal}</th>`;
+          parRow.innerHTML += '<th></th>';
+        }
 
-  // First cell under the "Player" column (blank)
-  parRow.innerHTML += '<th></th>';
-
-  // Add the 18 hole par values
-  parValues.forEach(par => {
-    const th = document.createElement('th');
-    th.textContent = par;
-    parRow.appendChild(th);
-  });
-
-  // Calculate and insert total par in the Total column
-  const parTotal = parValues.reduce((sum, p) => sum + p, 0);
-  parRow.innerHTML += `<th>${parTotal}</th>`;
-
-  // Empty +/- cell
-  parRow.innerHTML += '<th></th>';
-}
         function buildPlayerRow(name = '', rowIndex = 0, savedScores = []) {
           const row = document.createElement('tr');
 
@@ -127,7 +142,7 @@
           const nameInput = document.createElement('input');
           nameInput.type = 'text';
           nameInput.value = name;
-          nameInput.addEventListener('input', () => saveScores());
+          nameInput.addEventListener('input', () => saveScoresToFirestore());
           nameCell.appendChild(nameInput);
           row.appendChild(nameCell);
 
@@ -139,7 +154,7 @@
             input.value = savedScores[i] || '';
             input.addEventListener('input', () => {
               calculate(row);
-              saveScores();
+              saveScoresToFirestore();
             });
             cell.appendChild(input);
             row.appendChild(cell);
@@ -155,6 +170,7 @@
           diffCell.textContent = '0';
           row.appendChild(diffCell);
 
+          // Calculate after fields exist
           setTimeout(() => calculate(row), 0);
           return row;
         }
@@ -180,50 +196,121 @@
 
           row.querySelector('.total').textContent = total || '0';
           const diff = total - parTotal;
-row.querySelector('.diff').textContent = total
-  ? (diff > 0 ? `+${diff}` : diff)
-  : '0';
+          row.querySelector('.diff').textContent = total ? (diff > 0 ? `+${diff}` : `${diff}`) : '0';
         }
 
-        function saveScores() {
+        // ---------- Firestore helpers ----------
+        function courseDocRef(courseName) {
+          return doc(db, 'wordleScorecards', courseName);
+        }
+
+        function readTableData() {
           const data = {
             course: courseSelect.value,
             players: []
           };
-
           tbody.querySelectorAll('tr').forEach(row => {
             const name = row.querySelector('input[type="text"]')?.value || '';
             const scores = Array.from(row.querySelectorAll('input[type="number"]')).map(i => i.value);
             data.players.push({ name, scores });
           });
-
-          localStorage.setItem('scorecardData', JSON.stringify(data));
+          return data;
         }
 
-        function loadScorecard(courseName) {
-          tbody.innerHTML = '';
-          currentPar = courses[courseName];
-          updateParRow(currentPar);
+        async function saveScoresToFirestore() {
+          if (applyingRemote) return; // do not echo writes
+          const data = readTableData();
+          const ref = courseDocRef(data.course);
+          await setDoc(ref, {
+            course: data.course,
+            players: data.players,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        }
 
-          const saved = JSON.parse(localStorage.getItem('scorecardData'));
-          const players = saved?.course === courseName ? saved.players : [];
-
-          for (let i = 0; i < 4; i++) {
-            const p = players[i] || { name: `Player ${i + 1}`, scores: [] };
-            const row = buildPlayerRow(p.name, i, p.scores);
-            tbody.appendChild(row);
+        function sameData(a, b) {
+          try {
+            return JSON.stringify(a) === JSON.stringify(b);
+          } catch {
+            return false;
           }
         }
 
-        courseSelect.addEventListener('change', e => {
-          loadScorecard(e.target.value);
-          saveScores();
-        });
+        function buildDefaultPlayers() {
+          return Array.from({ length: 4 }, (_, i) => ({ name: `Player ${i + 1}`, scores: [] }));
+        }
 
-        // Load last selected course or default
-        const saved = JSON.parse(localStorage.getItem('scorecardData'));
-        courseSelect.value = saved?.course || courseSelect.options[0].value;
+        function renderFromData(docData) {
+          tbody.innerHTML = '';
+          const players = docData?.players?.length ? docData.players : buildDefaultPlayers();
+          players.forEach((p, i) => {
+            const row = buildPlayerRow(p.name, i, p.scores || []);
+            tbody.appendChild(row);
+          });
+        }
+
+        async function ensureDocExists(courseName) {
+          const ref = courseDocRef(courseName);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            await setDoc(ref, {
+              course: courseName,
+              players: buildDefaultPlayers(),
+              updatedAt: serverTimestamp()
+            });
+          }
+        }
+
+        async function attachListenerForCourse(courseName) {
+          // detach previous
+          if (unsubscribe) {
+            unsubscribe();
+            unsubscribe = null;
+          }
+          await ensureDocExists(courseName);
+
+          const ref = courseDocRef(courseName);
+          unsubscribe = onSnapshot(ref, snap => {
+            if (!snap.exists()) return;
+            const serverData = snap.data();
+
+            // Compare with current table state to avoid useless reflow
+            const localData = readTableData();
+            if (!sameData(
+              { course: localData.course, players: localData.players },
+              { course: serverData.course, players: serverData.players }
+            )) {
+              applyingRemote = true;
+              currentPar = courses[courseName];
+              updateParRow(currentPar);
+              renderFromData(serverData);
+              applyingRemote = false;
+            }
+          });
+        }
+
+        async function loadScorecard(courseName) {
+          currentPar = courses[courseName];
+          updateParRow(currentPar);
+
+          // initial render comes from Firestore listener
+          await attachListenerForCourse(courseName);
+        }
+
+        // ---------- Boot ----------
+        // Build the "1..18" header cells using document.write, keep as you had it
+        // The <tr> with hole numbers is already emitted above by your document.write
+
+        // Load last course seen, or default to first option
+        // We use a tiny key in localStorage just to remember which course to auto-open.
+        const last = localStorage.getItem('lastCourse');
+        courseSelect.value = last && courses[last] ? last : courseSelect.options[0].value;
         loadScorecard(courseSelect.value);
+
+        courseSelect.addEventListener('change', e => {
+          localStorage.setItem('lastCourse', e.target.value);
+          loadScorecard(e.target.value);
+        });
       </script>
     </tbody>
   </table>
