@@ -47,20 +47,20 @@
 #wordBox{
   position: fixed;
   bottom: max(12px, env(safe-area-inset-bottom));
-  /* sit to the right of the mini board (min 180 + padding/border/gap ≈ 220) */
   left: 220px;
-  max-width: 700px;
-  background: #fff;
-  border: 1px solid #ccc;
+  max-width: 640px;
+  background: #0B6623;      /* Masters green */
+  border: 1px solid #084d1a; /* darker green border */
   border-radius: 8px;
   padding: 14px 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  color: #111;
-  z-index: 4;
+  box-shadow: 0 2px 10px rgba(0,0,0,.2);
+  color: #fff;              /* white text for contrast */
   font-size: 16px;
-line-height: 1.6;
-  
+  font-weight: bold;        /* bold text */
+  line-height: 1.6;
+  z-index: 4;
 }
+    
 #wordBox h4{ margin: 0 0 6px; font-size: 14px; font-weight: 700; }
 #wordBox .w{ font-weight: 700; }
 #wordBox .d{ opacity: .9; }
