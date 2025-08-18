@@ -14,6 +14,12 @@
     .even-par  { background-color: white; }
     input[type="number"] { width: 50px; text-align: center; display: inline-block; vertical-align: middle; }
     input[type="text"] { width: 100px; }
+    
+    .player-label td {
+  font-weight: bold;
+  background: #eee;
+  text-align: left;
+}
 
     #playerHeader {
   color: #111;   /* makes text dark */
@@ -329,9 +335,25 @@ function updateMiniBoard() {
 
     function renderFromData(docData) {
   tbody.innerHTML = '';
+
+  // Add the Player label row at the very top
+  const labelRow = document.createElement('tr');
+  labelRow.classList.add('player-label');
+  const labelCell = document.createElement('td');
+  labelCell.textContent = 'Player';
+  labelRow.appendChild(labelCell);
+
+  // Fill the rest of that row with empty cells to keep alignment
+  for (let i = 0; i < 20; i++) {  // 18 holes + Total + Diff
+    labelRow.appendChild(document.createElement('td'));
+  }
+  tbody.appendChild(labelRow);
+
+  // Then build actual player rows
   const players = docData?.players?.length ? docData.players : buildDefaultPlayers();
   players.forEach((p, i) => tbody.appendChild(buildPlayerRow(p.name, i, p.scores || [])));
-  updateMiniBoard(); // <— keep the floating box in sync after re-render
+
+  updateMiniBoard(); // keep floating box in sync
 }
 
     async function ensureDocExists(courseName) {
