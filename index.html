@@ -15,6 +15,38 @@
     input[type="number"] { width: 50px; text-align: center; display: inline-block; vertical-align: middle; }
     input[type="text"] { width: 100px; }
 
+    input[type="text"] { width: 100px; }
+
+    /* Mini scoreboard box */
+#miniBoard {
+  position: fixed;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: max(12px, env(safe-area-inset-left));
+  min-width: 180px;
+  max-width: 260px;
+  padding: 10px 12px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: 14px/1.4 system-ui, -apple-system, Arial, sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  color: #111;
+  z-index: 4; /* above table sticky headers */
+}
+#miniBoard h4 { margin: 0 0 6px 0; font-size: 14px; font-weight: 700; }
+#miniBoard .row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+#miniBoard .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#miniBoard .score { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 600px){
+  #miniBoard {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: max(8px, env(safe-area-inset-left));
+    min-width: 150px;
+    padding: 8px 10px;
+  }
+}
+
 /* keep sticky cells opaque over scrolled content */
 th:first-child, td:first-child { 
   position: sticky;
@@ -66,6 +98,19 @@ th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
     <tbody></tbody>
   </table>
 
+<table id="scorecard">
+  <thead>…</thead>
+  <tbody></tbody>
+</table>
+
+  </table>
+
+<!-- Live mini scoreboard -->
+<div id="miniBoard" aria-live="polite"></div>
+
+<!-- mini scoreboard goes right after the table closes -->
+<div id="miniBoard" aria-live="polite"></div>
+  
   <!-- MOVE THE SCRIPT OUTSIDE TBODY -->
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -201,9 +246,31 @@ testWriteCourse(); // runs once on load
     }
 
     function calculate(row) {
-      const inputs = row.querySelectorAll('input[type="number"]');
-      let total = 0;
-      let parTotal = 0;
+  const inputs = row.querySelectorAll('input[type="number"]');
+  let total = 0;
+  let parTotal = 0;
+
+  inputs.forEach((input, index) => {
+    const val = parseInt(input.value);
+    const par = currentPar[index];
+    const cell = input.parentElement;
+    cell.className = '';
+    if (!isNaN(val)) {
+      total += val;
+      parTotal += par;
+      if (val < par) cell.className = 'under-par';
+      else if (val > par) cell.className = 'over-par';
+      else cell.className = 'even-par';
+    }
+  });
+
+  row.querySelector('.total').textContent = total || '0';
+  const diff = total - parTotal;
+  row.querySelector('.diff').textContent = total ? (diff > 0 ? `+${diff}` : `${diff}`) : '0';
+
+  // keep the mini board in sync
+  updateMiniBoard();
+}
 
       inputs.forEach((input, index) => {
         const val = parseInt(input.value);
