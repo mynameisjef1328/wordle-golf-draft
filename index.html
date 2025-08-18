@@ -43,22 +43,31 @@
 #miniBoard .score { font-variant-numeric: tabular-nums; }
 
     /* Word of the Day box */
+/* Word of the Day card */
 #wordBox{
   position: fixed;
   bottom: max(12px, env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 520px;
-  width: calc(100% - 260px);     /* leaves room for miniBoard on the left */
+  /* sit to the right of the mini board (min 180 + padding/border/gap ≈ 220) */
+  left: 220px;
+  max-width: 560px;
   background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 14px 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,.06);
-  font: 15px/1.5 system-ui, -apple-system, Arial, sans-serif;
-  color: #222;
-  z-index: 3; /* below miniBoard (which is 4), above table */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  color: #111;
+  z-index: 4;
+  
 }
+#wordBox h4{ margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+#wordBox .w{ font-weight: 700; }
+#wordBox .d{ opacity: .9; }
+
+/* tighten on small screens */
+@media (max-width: 600px){
+  #wordBox{ left: 190px; max-width: 420px; padding: 8px 10px; }
+}
+    
 #wordBox h4{
   margin: 0 0 6px 0;
   font-size: 15px;
@@ -470,19 +479,30 @@ document.getElementById('clearBtn').addEventListener('click', async () => {
   </script>
 
 <script>
+(function () {
+  const box = document.getElementById('wordBox');
+  if (!box) return;
+
   const words = [
-    { word: "Paronomasia", def: "A fancy word for a pun or wordplay." },
-    { word: "Birdie", def: "In golf, one stroke under par. In life, a small bird." },
-    { word: "Lexicon", def: "The vocabulary of a person, language, or subject." },
-    { word: "Bogey", def: "In golf, one stroke over par. In slang, an adversary." },
-    { word: "Sesquipedalian", def: "Given to using long words." },
-    { word: "Ace", def: "In golf, a hole-in-one. In words, a master of something." }
+    { word: "Paronomasia",   def: "A fancy word for a pun or wordplay." },
+    { word: "Birdie",        def: "Golf: one under par. Also, a small bird." },
+    { word: "Lexicon",       def: "The vocabulary of a person, language, or field." },
+    { word: "Bogey",         def: "Golf: one over par. Slang: an adversary." },
+    { word: "Sesquipedalian",def: "Given to using long words." },
+    { word: "Ace",           def: "Golf: hole-in-one. Also: someone excellent at something." }
   ];
 
-  const today = words[Math.floor(Math.random() * words.length)];
-  document.getElementById('wordBox').innerHTML =
-    `<h4>Word of the Day</h4>
-     <strong>${today.word}</strong>: ${today.def}`;
+  // deterministic 'word of the day' so all players see the same one
+  const seed = new Date().toDateString();
+  let hash = 0; for (let i = 0; i < seed.length; i++) hash = (hash*31 + seed.charCodeAt(i)) >>> 0;
+  const pick = words[hash % words.length];
+
+  box.innerHTML = `
+    <h4>Word of the Day</h4>
+    <span class="w">${pick.word}</span>
+    <span class="d"> — ${pick.def}</span>
+  `;
+})();
 </script>
   
 </body>
