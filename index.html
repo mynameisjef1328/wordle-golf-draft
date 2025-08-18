@@ -58,15 +58,40 @@
   };
 
   let app, db;
+(async () => {
   try {
     app = initializeApp(firebaseConfig);
     db  = getFirestore(app);
     console.log("Firebase OK:", firebaseConfig.projectId);
+
     // optional quick ping
-    await setDoc(doc(db, "diagnostics", "ping"), { ok: true, ts: Date.now() }, { merge: true });
+    await setDoc(doc(db, "diagnostics", "ping"),
+      { ok: true, ts: Date.now() }, { merge: true });
+    console.log("Ping wrote");
   } catch (e) {
-    console.error("Firebase init error:", e);
+    console.error("Firebase init/ping error:", e);
   }
+})();
+
+    async function testWriteCourse(course = "Bully Pulpit") {
+  try {
+    await setDoc(doc(db, "wordleScorecards", course), {
+      course,
+      players: [
+        { name: "Tester 1", scores: ["3","4","","","","","","","","","","","","","","","",""] },
+        { name: "Tester 2", scores: [] },
+        { name: "Player 3", scores: [] },
+        { name: "Player 4", scores: [] }
+      ],
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    console.log("testWriteCourse OK");
+  } catch (e) {
+    console.error("testWriteCourse error:", e);
+  }
+}
+
+testWriteCourse(); // runs once on load
 
   // ...keep the rest of your scorecard code here (courses, updateParRow, buildPlayerRow, saveScoresToFirestore, etc.)
 
