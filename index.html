@@ -439,5 +439,22 @@ document.getElementById('clearBtn').addEventListener('click', async () => {
 });
     
   </script>
+
+<script>
+  const words = [
+    { word: "Paronomasia", def: "A fancy word for a pun or wordplay." },
+    { word: "Birdie", def: "In golf, one stroke under par. In life, a small bird." },
+    { word: "Lexicon", def: "The vocabulary of a person, language, or subject." },
+    { word: "Bogey", def: "In golf, one stroke over par. In slang, an adversary." },
+    { word: "Sesquipedalian", def: "Given to using long words." },
+    { word: "Ace", def: "In golf, a hole-in-one. In words, a master of something." }
+  ];
+
+  const today = words[Math.floor(Math.random() * words.length)];
+  document.getElementById('wordBox').innerHTML =
+    `<h4>Word of the Day</h4>
+     <strong>${today.word}</strong>: ${today.def}`;
+</script>
+  
 </body>
 </html>
