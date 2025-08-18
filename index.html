@@ -262,60 +262,40 @@ testWriteCourse(); // runs once on load
   updateMiniBoard();
 }
 
-     function updateMiniBoard() {
+function updateMiniBoard() {
   const box = document.getElementById('miniBoard');
   if (!box) return;
 
   const rows = Array.from(tbody.querySelectorAll('tr'));
-  const items = rows.map(r => {
-    const name = r.querySelector('input[type="text"]')?.value?.trim() || '';
-    const total = parseInt(r.querySelector('.total')?.textContent || '0', 10) || 0;
-    const diffTxt = (r.querySelector('.diff')?.textContent || '0').toString();
-    return { name, total, diffTxt };
-  }).filter(p => p.name);
+  const items = rows
+    .map(r => {
+      const name = r.querySelector('input[type="text"]')?.value?.trim() || '';
+      const total = parseInt(r.querySelector('.total')?.textContent || '0', 10) || 0;
+      const diffTxt = (r.querySelector('.diff')?.textContent || '0').toString();
+      return { name, total, diffTxt };
+    })
+    .filter(p => p.name);
 
   if (!items.length) {
-    box.innerHTML = `<h4>Live Scores</h4><div class="row"><span class="name">Enter scores to begin</span></div>`;
+    box.innerHTML = `<h4>Live Scores</h4>
+      <div class="row"><span class="name">Enter scores to begin</span></div>`;
     return;
   }
 
   // sort by best total
   items.sort((a, b) => (a.total || 9999) - (b.total || 9999));
 
-  box.innerHTML = `<h4>Live Scores</h4>` + items.map(p => `
-    <div class="row">
-      <span class="name">${p.name}</span>
-      <span class="score">${p.total} (${p.diffTxt})</span>
-    </div>
-  `).join('');
-} 
-
-  row.querySelector('.total').textContent = total || '0';
-  const diff = total - parTotal;
-  row.querySelector('.diff').textContent = total ? (diff > 0 ? `+${diff}` : `${diff}`) : '0';
-
-  // keep the mini board in sync
-  updateMiniBoard();
+  box.innerHTML =
+    `<h4>Live Scores</h4>` +
+    items
+      .map(
+        p => `<div class="row">
+                <span class="name">${p.name}</span>
+                <span class="score">${p.total} (${p.diffTxt})</span>
+              </div>`
+      )
+      .join('');
 }
-
-      inputs.forEach((input, index) => {
-        const val = parseInt(input.value);
-        const par = currentPar[index];
-        const cell = input.parentElement;
-        cell.className = '';
-        if (!isNaN(val)) {
-          total += val;
-          parTotal += par;
-          if (val < par) cell.className = 'under-par';
-          else if (val > par) cell.className = 'over-par';
-          else cell.className = 'even-par';
-        }
-      });
-
-      row.querySelector('.total').textContent = total || '0';
-      const diff = total - parTotal;
-      row.querySelector('.diff').textContent = total ? (diff > 0 ? `+${diff}` : `${diff}`) : '0';
-    }
 
     // ---------- Firestore helpers ----------
     const buildDefaultPlayers = () =>
