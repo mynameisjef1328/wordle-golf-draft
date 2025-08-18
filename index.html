@@ -254,6 +254,16 @@ testWriteCourse(); // runs once on load
     }
   });
 
+  row.querySelector('.total').textContent = total || '0';
+  const diff = total - parTotal;
+  row.querySelector('.diff').textContent = total
+    ? (diff > 0 ? `+${diff}` : `${diff}`)
+    : '0';
+
+  // keep the mini board in sync
+  updateMiniBoard();
+}
+
      function updateMiniBoard() {
   const box = document.getElementById('miniBoard');
   if (!box) return;
