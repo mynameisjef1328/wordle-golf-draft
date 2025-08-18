@@ -21,6 +21,7 @@
 
   <label for="courseSelect">Choose a course:</label>
   <select id="courseSelect"></select>
+  <button id="clearBtn" style="margin-left:12px;">Clear Scores</button>
 
   <table id="scorecard">
     <thead>
@@ -286,6 +287,35 @@ testWriteCourse(); // runs once on load
       localStorage.setItem('lastCourse', e.target.value);
       loadScorecard(e.target.value);
     });
+
+// ---------- Clear Scores Button ----------
+document.getElementById('clearBtn').addEventListener('click', async () => {
+  if (!confirm("Clear all player scores for this course?")) return;
+
+  const playersCleared = Array.from(tbody.querySelectorAll('tr')).map((row, i) => {
+    const name = row.querySelector('input[type="text"]')?.value || `Player ${i+1}`;
+    return { name, scores: [] };
+  });
+
+  // Update the table immediately
+  renderFromData({ players: playersCleared });
+  updateParRow(currentPar);
+
+  // Push to Firestore
+  try {
+    const ref = doc(db, 'wordleScorecards', courseSelect.value);
+    await setDoc(ref, {
+      course: courseSelect.value,
+      players: playersCleared,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    console.log("Scores cleared");
+  } catch (err) {
+    console.error("Clear scores failed:", err);
+    alert("Clear failed. Check console.");
+  }
+});
+    
   </script>
 </body>
 </html>
