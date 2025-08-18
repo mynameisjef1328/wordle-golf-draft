@@ -45,27 +45,30 @@
 
   <!-- MOVE THE SCRIPT OUTSIDE TBODY -->
   <script type="module">
-    // ---------- Firebase setup ----------
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // TODO: paste your real config here
-    const firebaseConfig = {
-      apiKey: "YOUR_KEY",
-      authDomain: "YOUR_APP.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_APP.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyC9-Z6E59grKoq_pD8acGTre2Jx-1NQ_Qc",
+    authDomain: "wordle-golf-6c636.firebaseapp.com",
+    projectId: "wordle-golf-6c636",
+    storageBucket: "wordle-golf-6c636.appspot.com",
+    messagingSenderId: "672104265687",
+    appId: "1:672104265687:web:2c16b0539fcd52ca4d7d92"
+  };
 
-    let app, db;
-    try {
-      app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-    } catch (e) {
-      console.error("Firebase init error:", e);
-    }
+  let app, db;
+  try {
+    app = initializeApp(firebaseConfig);
+    db  = getFirestore(app);
+    console.log("Firebase OK:", firebaseConfig.projectId);
+    // optional quick ping
+    await setDoc(doc(db, "diagnostics", "ping"), { ok: true, ts: Date.now() }, { merge: true });
+  } catch (e) {
+    console.error("Firebase init error:", e);
+  }
+
+  // ...keep the rest of your scorecard code here (courses, updateParRow, buildPlayerRow, saveScoresToFirestore, etc.)
 
     // ---------- Data ----------
     const courses = {
