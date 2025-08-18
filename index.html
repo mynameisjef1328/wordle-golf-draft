@@ -42,6 +42,32 @@
 #miniBoard .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #miniBoard .score { font-variant-numeric: tabular-nums; }
 
+    /* Word of the Day box */
+#wordBox{
+  position: fixed;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 520px;
+  width: calc(100% - 260px);     /* leaves room for miniBoard on the left */
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  font: 15px/1.5 system-ui, -apple-system, Arial, sans-serif;
+  color: #222;
+  z-index: 3; /* below miniBoard (which is 4), above table */
+}
+#wordBox h4{
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+@media (max-width: 700px){
+  #wordBox{ width: calc(100% - 24px); left: 50%; transform: translateX(-50%); }
+}
+
 @media (max-width: 600px){
   #miniBoard {
     bottom: max(8px, env(safe-area-inset-bottom));
@@ -104,6 +130,9 @@ th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
 
 <!-- mini scoreboard goes right after the table closes -->
 <div id="miniBoard" aria-live="polite"></div>
+
+<!-- Word of the Day box -->
+<div id="wordBox" aria-live="polite"></div>
   
   <!-- MOVE THE SCRIPT OUTSIDE TBODY -->
   <script type="module">
