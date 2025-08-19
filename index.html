@@ -60,6 +60,34 @@
   line-height: 1.6;
   z-index: 4;
 }
+  /* Rules of the Game box */
+#rulesBox {
+  position: fixed;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 1050px;              /* push farther right than before */
+  max-width: 300px;          /* a little narrower */
+  max-height: 180px;         /* keep it from covering the scorecard */
+  overflow-y: auto;          /* scroll if content is taller */
+  background: #f9f9f9;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.15);
+  color: #222;
+  font-size: 14px;
+  line-height: 1.4;
+  z-index: 4;
+}
+
+#rulesBox h4 {
+  margin-top: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+#rulesBox ul {
+  padding-left: 20px;
+  margin: 8px 0 0 0;
+}
     
 @media (max-width: 700px){
   #wordBox{ width: calc(100% - 24px); left: 50%; transform: translateX(-50%); }
@@ -130,6 +158,19 @@ th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
 
 <!-- Word of the Day box -->
 <div id="wordBox" aria-live="polite"></div>
+
+  <!-- Rules of Wordle Golf box -->
+<div id="rulesBox" aria-live="polite">
+  <h4>🏌️ Wordle Golf Rules</h4>
+  <ul>
+    <li>Each hole = one Wordle puzzle (one per day).</li>
+    <li>Your score = number of guesses used to solve the Wordle.</li>
+    <li>Solve it in <strong>3 tries</strong> → you score <strong>3</strong> (like 3 strokes).</li>
+    <li>If you <strong>don’t solve in 6 tries</strong> or <strong>forget to play</strong>, your score = <strong>7</strong>.</li>
+    <li>Lowest total score wins, just like golf.</li>
+    <li>Track progress hole by hole, and compare live scores with friends!</li>
+  </ul>
+</div>
   
   <!-- MOVE THE SCRIPT OUTSIDE TBODY -->
   <script type="module">
