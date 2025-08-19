@@ -4,133 +4,246 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wordle Golf Scorecard</title>
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background-color: #999; color: white; }
-    .under-par { background-color: lightgreen; }
-    .over-par  { background-color: lightcoral; }
-    .even-par  { background-color: white; }
-    input[type="number"] { width: 50px; text-align: center; display: inline-block; vertical-align: middle; }
-    input[type="text"] { width: 100px; }
-    
-    .player-label td {
-  font-weight: bold;
-  background: #eee;
-  text-align: left;
-}
+    /* =========================
+       Design tokens / palette
+       ========================= */
+    :root{
+      --bg: #f7f7f8;
+      --text: #111;
+      --muted: #6b7280;
+      --border: #d8d8dc;
+      --card: #ffffff;
 
-    /* Mini scoreboard box */
-#miniBoard {
-  position: fixed;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  left: max(12px, env(safe-area-inset-left));
-  min-width: 180px;
-  max-width: 260px;
-  padding: 10px 12px;
-  background: #eee;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font: 14px/1.4 system-ui, -apple-system, Arial, sans-serif;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  color: #111;
-  z-index: 4; /* above table sticky headers */
-}
-#miniBoard h4 { margin: 0 0 6px 0; font-size: 14px; font-weight: 700; }
-#miniBoard .row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
-#miniBoard .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#miniBoard .score { font-variant-numeric: tabular-nums; }
+      --accent: #0B6623;   /* “Masters” green */
+      --accent-800:#084d1a;
 
-    /* Word of the Day box */
-/* Word of the Day card */
-#wordBox{
-  position: fixed;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  left: 220px;
-  max-width: 700px;
-  background: #0B6623;      /* Masters green */
-  border: 1px solid #084d1a; /* darker green border */
-  border-radius: 8px;
-  padding: 10px 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.2);
-  color: #fff;              /* white text for contrast */
-  font-size: 23px;
-  font-weight: bold;        /* bold text */
-  line-height: 1.6;
-  z-index: 4;
-}
-  /* Rules of the Game box */
-#rulesBox {
-  position: fixed;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  left: 1050px;              /* push farther right than before */
-  max-width: 300px;          /* a little narrower */
-  max-height: 180px;         /* keep it from covering the scorecard */
-  overflow-y: auto;          /* scroll if content is taller */
-  background: #f9f9f9;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.15);
-  color: #222;
-  font-size: 14px;
-  line-height: 1.4;
-  z-index: 4;
-}
+      --good: #c9f7cf;
+      --bad:  #ffd3d3;
+      --even: #ffffff;
 
-#rulesBox h4 {
-  margin-top: 0;
-  font-size: 16px;
-  font-weight: bold;
-}
-#rulesBox ul {
-  padding-left: 20px;
-  margin: 8px 0 0 0;
-}
-    
-@media (max-width: 700px){
-  #wordBox{ width: calc(100% - 24px); left: 50%; transform: translateX(-50%); }
-}
+      --radius: 10px;
+      --shadow: 0 6px 18px rgba(0,0,0,.08);
+      --shadow-soft: 0 2px 10px rgba(0,0,0,.06);
+      --gap: 12px;
+    }
 
-@media (max-width: 600px){
-  #miniBoard {
-    bottom: max(8px, env(safe-area-inset-bottom));
-    left: max(8px, env(safe-area-inset-left));
-    min-width: 150px;
-    padding: 8px 10px;
-  }
-}
+    /* =========================
+       Base layout & typography
+       ========================= */
+    html,body{height:100%}
+    body{
+      margin: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
 
-/* keep sticky cells opaque over scrolled content */
-th:first-child, td:first-child { 
-  position: sticky;
-  left: 0;
-  background: #eee;            /* already set */
-  z-index: 2;
-  background-clip: padding-box; /* avoids odd borders on iOS */
-}
+    h2{
+      margin: 0 0 12px;
+      font-size: clamp(22px, 2.6vw, 36px);
+      letter-spacing: .2px;
+    }
 
-/* keep header row on top while scrolling */
-thead th {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background: #999;            /* match your header color while sticky */
-}
+    /* Toolbar (uses your existing elements/IDs) */
+    .toolbar{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 10px 0 12px;
+    }
 
-/* optional: subtle divider where the sticky column meets the rest */
-th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
-    
+    select, button{
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0 12px;
+      background: var(--card);
+      color: var(--text);
+      box-shadow: var(--shadow-soft);
+    }
+    button{
+      cursor: pointer;
+      background: #fff;
+      transition: transform .04s ease, box-shadow .2s ease, background .2s ease;
+    }
+    button:hover{ box-shadow: var(--shadow); }
+    button:active{ transform: translateY(1px); }
+
+    /* =========================
+       Scorecard table
+       ========================= */
+    table{ border-collapse: separate; border-spacing: 0; width: 100%; overflow: hidden; border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+    th, td{
+      border: 1px solid var(--border);
+      padding: 10px 8px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    thead th{
+      background: #8b8f95;
+      color: #fff;
+      text-transform: none;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    /* sticky first column */
+    th:first-child, td:first-child{
+      position: sticky;
+      left: 0;
+      background: #f0f1f3;
+      z-index: 2;
+      background-clip: padding-box;
+      box-shadow: 2px 0 0 rgba(0,0,0,.06);
+    }
+    /* subtle zebra for readability */
+    tbody tr:nth-child(even) td{ background: #fcfcfd; }
+
+    /* Inputs */
+    input[type="number"], input[type="text"]{
+      width: 64px;           /* a touch wider */
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      text-align: center;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    input[type="text"]{ width: 120px; text-align: left; padding: 0 10px; }
+    input:focus{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(11,102,35,.15);
+      background: #fff;
+    }
+
+    /* Par coloring (keep your class names) */
+    td.under-par{ background: var(--good) !important; }
+    td.over-par { background: var(--bad) !important; }
+    td.even-par { background: var(--even) !important; }
+
+    /* Player label row at top of body (kept from your JS) */
+    .player-label td{
+      font-weight: 700;
+      background: #f0f1f3 !important;
+      text-align: left;
+    }
+
+    /* =========================
+       Reusable "card" style
+       ========================= */
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      color: var(--text);
+    }
+    .card h4{ margin: 0 0 6px; font-weight: 800; font-size: 14px; letter-spacing:.2px; }
+
+    /* =========================
+       Floating HUD blocks
+       ========================= */
+    #miniBoard{
+      position: fixed;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      left: max(12px, env(safe-area-inset-left));
+      min-width: 190px;
+      max-width: 260px;
+      padding: 10px 12px;
+      z-index: 4;
+    }
+    #miniBoard .row{ display:flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+    #miniBoard .name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #miniBoard .score{ font-variant-numeric: tabular-nums; }
+
+    /* Word of the Day (green card) */
+    #wordBox{
+      position: fixed;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      left: calc(max(12px, env(safe-area-inset-left)) + 200px); /* clears miniBoard */
+      max-width: min(720px, 60vw);
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      z-index: 4;
+
+      background: var(--accent);
+      border: 1px solid var(--accent-800);
+      color: #fff;
+      font-size: clamp(18px, 1.8vw, 22px);
+      font-weight: 800;
+      line-height: 1.55;
+    }
+    #wordBox h4{ margin: 0 0 8px; font-size: 16px; font-weight: 900; opacity:.95; }
+    #wordBox .d{ font-weight: 700; opacity: .95; }
+
+    /* Rules (right edge) */
+    #rulesBox{
+      position: fixed;
+      right: max(12px, env(safe-area-inset-right));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      width: min(320px, 28vw);
+      max-height: 220px;
+      overflow: auto;
+      padding: 12px 16px;
+      z-index: 4;
+    }
+    #rulesBox h4{ margin: 0 0 6px; font-size: 15px; font-weight: 900; }
+    #rulesBox ul{ margin: 6px 0 0; padding-left: 20px; }
+    #rulesBox li{ margin: 4px 0; color: #1f2937; }
+
+    /* Make miniBoard/word/rules share the card look */
+    #miniBoard, #rulesBox{ composes: card; } /* (for editors that support it) */
+    /* Fallback for plain CSS: duplicate core properties */
+    #miniBoard, #rulesBox{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      color: var(--text);
+    }
+
+    /* =========================
+       Responsive tweaks
+       ========================= */
+    @media (max-width: 1200px){
+      #wordBox{ max-width: 56vw; }
+      #rulesBox{ width: min(300px, 32vw); }
+    }
+    @media (max-width: 900px){
+      /* stack the HUD pieces neatly */
+      #miniBoard{ left: max(8px, env(safe-area-inset-left)); bottom: max(8px, env(safe-area-inset-bottom)); }
+      #wordBox{
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 24px);
+        max-width: 720px;
+      }
+      #rulesBox{
+        right: max(8px, env(safe-area-inset-right));
+        width: calc(100% - 24px);
+        max-width: 520px;
+        bottom: calc(max(8px, env(safe-area-inset-bottom)) + 92px); /* lift above word box */
+      }
+    }
   </style>
 </head>
 <body>
   <h2>Wordle Golf Scorecard</h2>
 
-  <label for="courseSelect">Choose a course:</label>
-  <select id="courseSelect"></select>
-  <button id="clearBtn" style="margin-left:12px;">Clear Scores</button>
-  <button id="clearNamesBtn" type="button" style="margin-left:8px;">Clear Names</button>
+  <div class="toolbar">
+    <label for="courseSelect">Choose a course:</label>
+    <select id="courseSelect"></select>
+    <button id="clearBtn">Clear Scores</button>
+    <button id="clearNamesBtn" type="button">Clear Names</button>
+  </div>
 
   <table id="scorecard">
     <thead>
@@ -153,76 +266,59 @@ th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
     <tbody></tbody>
   </table>
 
-<!-- mini scoreboard goes right after the table closes -->
-<div id="miniBoard" aria-live="polite"></div>
+  <!-- Floating HUD -->
+  <div id="miniBoard" class="card" aria-live="polite"></div>
+  <div id="wordBox" aria-live="polite"></div>
+  <div id="rulesBox" class="card" aria-live="polite">
+    <h4>🏌️ Wordle Golf Rules</h4>
+    <ul>
+      <li>Each hole = one Wordle puzzle (one per day).</li>
+      <li>Your score = number of guesses used to solve the Wordle.</li>
+      <li>Solve it in <strong>3 tries</strong> → you score <strong>3</strong> (like 3 strokes).</li>
+      <li>If you <strong>don’t solve in 6 tries</strong> or <strong>forget to play</strong>, your score = <strong>7</strong>.</li>
+      <li>Lowest total score wins, just like golf.</li>
+      <li>Track progress hole by hole, and compare live scores with friends!</li>
+    </ul>
+  </div>
 
-<!-- Word of the Day box -->
-<div id="wordBox" aria-live="polite"></div>
-
-  <!-- Rules of Wordle Golf box -->
-<div id="rulesBox" aria-live="polite">
-  <h4>🏌️ Wordle Golf Rules</h4>
-  <ul>
-    <li>Each hole = one Wordle puzzle (one per day).</li>
-    <li>Your score = number of guesses used to solve the Wordle.</li>
-    <li>Solve it in <strong>3 tries</strong> → you score <strong>3</strong> (like 3 strokes).</li>
-    <li>If you <strong>don’t solve in 6 tries</strong> or <strong>forget to play</strong>, your score = <strong>7</strong>.</li>
-    <li>Lowest total score wins, just like golf.</li>
-    <li>Track progress hole by hole, and compare live scores with friends!</li>
-  </ul>
-</div>
-  
-  <!-- MOVE THE SCRIPT OUTSIDE TBODY -->
+  <!-- ===== Your existing JS (unchanged functionality) ===== -->
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC9-Z6E59grKoq_pD8acGTre2Jx-1NQ_Qc",
-    authDomain: "wordle-golf-6c636.firebaseapp.com",
-    projectId: "wordle-golf-6c636",
-    storageBucket: "wordle-golf-6c636.appspot.com",
-    messagingSenderId: "672104265687",
-    appId: "1:672104265687:web:2c16b0539fcd52ca4d7d92"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyC9-Z6E59grKoq_pD8acGTre2Jx-1NQ_Qc",
+      authDomain: "wordle-golf-6c636.firebaseapp.com",
+      projectId: "wordle-golf-6c636",
+      storageBucket: "wordle-golf-6c636.appspot.com",
+      messagingSenderId: "672104265687",
+      appId: "1:672104265687:web:2c16b0539fcd52ca4d7d92"
+    };
 
-  let app, db;
-(async () => {
-  try {
-    app = initializeApp(firebaseConfig);
-    db  = getFirestore(app);
-    console.log("Firebase OK:", firebaseConfig.projectId);
-
-    // optional quick ping
-    await setDoc(doc(db, "diagnostics", "ping"),
-      { ok: true, ts: Date.now() }, { merge: true });
-    console.log("Ping wrote");
-  } catch (e) {
-    console.error("Firebase init/ping error:", e);
-  }
-})();
+    let app, db;
+    (async () => {
+      try {
+        app = initializeApp(firebaseConfig);
+        db  = getFirestore(app);
+        await setDoc(doc(db, "diagnostics", "ping"), { ok: true, ts: Date.now() }, { merge: true });
+      } catch (e) { console.error("Firebase init/ping error:", e); }
+    })();
 
     async function testWriteCourse(course = "Bully Pulpit") {
-  try {
-    await setDoc(doc(db, "wordleScorecards", course), {
-      course,
-      players: [
-        { name: "Tester 1", scores: ["3","4","","","","","","","","","","","","","","","",""] },
-        { name: "Tester 2", scores: [] },
-        { name: "Player 3", scores: [] },
-        { name: "Player 4", scores: [] }
-      ],
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-    console.log("testWriteCourse OK");
-  } catch (e) {
-    console.error("testWriteCourse error:", e);
-  }
-}
-
-testWriteCourse(); // runs once on load
-
-  // ...keep the rest of your scorecard code here (courses, updateParRow, buildPlayerRow, saveScoresToFirestore, etc.)
+      try {
+        await setDoc(doc(db, "wordleScorecards", course), {
+          course,
+          players: [
+            { name: "Tester 1", scores: ["3","4","","","","","","","","","","","","","","","",""] },
+            { name: "Tester 2", scores: [] },
+            { name: "Player 3", scores: [] },
+            { name: "Player 4", scores: [] }
+          ],
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (e) { console.error("testWriteCourse error:", e); }
+    }
+    testWriteCourse();
 
     // ---------- Data ----------
     const courses = {
@@ -238,11 +334,10 @@ testWriteCourse(); // runs once on load
       'Congrssional': [3,4,5,4,3,5,4,4,4,5,4,3,4,5,4,4,3,4]
     };
 
-    const parRow        = document.getElementById('parRow');
-    const courseSelect  = document.getElementById('courseSelect');
-    const tbody         = document.querySelector('#scorecard tbody');
+    const parRow = document.getElementById('parRow');
+    const courseSelect = document.getElementById('courseSelect');
+    const tbody = document.querySelector('#scorecard tbody');
 
-    // Populate course dropdown
     Object.keys(courses).forEach(course => {
       const option = document.createElement('option');
       option.value = course;
@@ -307,70 +402,67 @@ testWriteCourse(); // runs once on load
     }
 
     function calculate(row) {
-  const inputs = row.querySelectorAll('input[type="number"]');
-  let total = 0;
-  let parTotal = 0;
+      const inputs = row.querySelectorAll('input[type="number"]');
+      let total = 0;
+      let parTotal = 0;
 
-  inputs.forEach((input, index) => {
-    const val = parseInt(input.value);
-    const par = currentPar[index];
-    const cell = input.parentElement;
-    cell.className = '';
-    if (!isNaN(val)) {
-      total += val;
-      parTotal += par;
-      if (val < par) cell.className = 'under-par';
-      else if (val > par) cell.className = 'over-par';
-      else cell.className = 'even-par';
+      inputs.forEach((input, index) => {
+        const val = parseInt(input.value);
+        const par = currentPar[index];
+        const cell = input.parentElement;
+        cell.className = '';
+        if (!isNaN(val)) {
+          total += val;
+          parTotal += par;
+          if (val < par) cell.className = 'under-par';
+          else if (val > par) cell.className = 'over-par';
+          else cell.className = 'even-par';
+        }
+      });
+
+      row.querySelector('.total').textContent = total || '0';
+      const diff = total - parTotal;
+      row.querySelector('.diff').textContent = total
+        ? (diff > 0 ? `+${diff}` : `${diff}`)
+        : '0';
+
+      updateMiniBoard();
     }
-  });
 
-  row.querySelector('.total').textContent = total || '0';
-  const diff = total - parTotal;
-  row.querySelector('.diff').textContent = total
-    ? (diff > 0 ? `+${diff}` : `${diff}`)
-    : '0';
+    function updateMiniBoard() {
+      const box = document.getElementById('miniBoard');
+      if (!box) return;
 
-  // keep the mini board in sync
-  updateMiniBoard();
-}
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const items = rows
+        .map(r => {
+          const name = r.querySelector('input[type="text"]')?.value?.trim() || '';
+          const total = parseInt(r.querySelector('.total')?.textContent || '0', 10) || 0;
+          const diffTxt = (r.querySelector('.diff')?.textContent || '0').toString();
+          return { name, total, diffTxt };
+        })
+        .filter(p => p.name);
 
-function updateMiniBoard() {
-  const box = document.getElementById('miniBoard');
-  if (!box) return;
+      if (!items.length) {
+        box.innerHTML = `<h4>Live Scores</h4>
+          <div class="row"><span class="name">Enter scores to begin</span></div>`;
+        return;
+      }
 
-  const rows = Array.from(tbody.querySelectorAll('tr'));
-  const items = rows
-    .map(r => {
-      const name = r.querySelector('input[type="text"]')?.value?.trim() || '';
-      const total = parseInt(r.querySelector('.total')?.textContent || '0', 10) || 0;
-      const diffTxt = (r.querySelector('.diff')?.textContent || '0').toString();
-      return { name, total, diffTxt };
-    })
-    .filter(p => p.name);
+      items.sort((a, b) => (a.total || 9999) - (b.total || 9999));
 
-  if (!items.length) {
-    box.innerHTML = `<h4>Live Scores</h4>
-      <div class="row"><span class="name">Enter scores to begin</span></div>`;
-    return;
-  }
+      box.innerHTML =
+        `<h4>Live Scores</h4>` +
+        items
+          .map(
+            p => `<div class="row">
+                    <span class="name">${p.name}</span>
+                    <span class="score">${p.total} (${p.diffTxt})</span>
+                  </div>`
+          )
+          .join('');
+    }
 
-  // sort by best total
-  items.sort((a, b) => (a.total || 9999) - (b.total || 9999));
-
-  box.innerHTML =
-    `<h4>Live Scores</h4>` +
-    items
-      .map(
-        p => `<div class="row">
-                <span class="name">${p.name}</span>
-                <span class="score">${p.total} (${p.diffTxt})</span>
-              </div>`
-      )
-      .join('');
-}
-
-    // ---------- Firestore helpers ----------
     const buildDefaultPlayers = () =>
       Array.from({ length: 4 }, (_, i) => ({ name: `Player ${i + 1}`, scores: [] }));
 
@@ -396,27 +488,21 @@ function updateMiniBoard() {
     }
 
     function renderFromData(docData) {
-  tbody.innerHTML = '';
+      tbody.innerHTML = '';
 
-  // Add the Player label row at the very top
-  const labelRow = document.createElement('tr');
-  labelRow.classList.add('player-label');
-  const labelCell = document.createElement('td');
-  labelCell.textContent = 'Player';
-  labelRow.appendChild(labelCell);
+      const labelRow = document.createElement('tr');
+      labelRow.classList.add('player-label');
+      const labelCell = document.createElement('td');
+      labelCell.textContent = 'Player';
+      labelRow.appendChild(labelCell);
+      for (let i = 0; i < 20; i++) { labelRow.appendChild(document.createElement('td')); }
+      tbody.appendChild(labelRow);
 
-  // Fill the rest of that row with empty cells to keep alignment
-  for (let i = 0; i < 20; i++) {  // 18 holes + Total + Diff
-    labelRow.appendChild(document.createElement('td'));
-  }
-  tbody.appendChild(labelRow);
+      const players = docData?.players?.length ? docData.players : buildDefaultPlayers();
+      players.forEach((p, i) => tbody.appendChild(buildPlayerRow(p.name, i, p.scores || [])));
 
-  // Then build actual player rows
-  const players = docData?.players?.length ? docData.players : buildDefaultPlayers();
-  players.forEach((p, i) => tbody.appendChild(buildPlayerRow(p.name, i, p.scores || [])));
-
-  updateMiniBoard(); // keep floating box in sync
-}
+      updateMiniBoard();
+    }
 
     async function ensureDocExists(courseName) {
       if (!db) return;
@@ -429,7 +515,7 @@ function updateMiniBoard() {
 
     async function attachListenerForCourse(courseName) {
       if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-      if (!db) return; // offline or config missing
+      if (!db) return;
 
       await ensureDocExists(courseName);
       const ref = doc(db, 'wordleScorecards', courseName);
@@ -455,19 +541,13 @@ function updateMiniBoard() {
     async function loadScorecard(courseName) {
       currentPar = courses[courseName];
       updateParRow(currentPar);
-
-      // Render something immediately so the table never looks empty
       renderFromData({ players: buildDefaultPlayers() });
-
-      // Then attach realtime sync
       await attachListenerForCourse(courseName);
     }
 
-    // ---------- Boot ----------
     const last = localStorage.getItem('lastCourse');
     courseSelect.value = last && courses[last] ? last : Object.keys(courses)[0];
     loadScorecard(courseSelect.value);
-
     updateMiniBoard();
 
     courseSelect.addEventListener('change', e => {
@@ -475,108 +555,97 @@ function updateMiniBoard() {
       loadScorecard(e.target.value);
     });
 
-// ---------- Clear Scores Button ----------
-document.getElementById('clearBtn').addEventListener('click', async () => {
-  if (!confirm("Clear all player scores for this course?")) return;
+    document.getElementById('clearBtn').addEventListener('click', async () => {
+      if (!confirm("Clear all player scores for this course?")) return;
 
-  const playersCleared = Array.from(tbody.querySelectorAll('tr')).map((row, i) => {
-    const name = row.querySelector('input[type="text"]')?.value || `Player ${i+1}`;
-    return { name, scores: [] };
-  });
+      const playersCleared = Array.from(tbody.querySelectorAll('tr')).map((row, i) => {
+        const name = row.querySelector('input[type="text"]')?.value || `Player ${i+1}`;
+        return { name, scores: [] };
+      });
 
-  // Update the table immediately
-  renderFromData({ players: playersCleared });
-  updateParRow(currentPar);
+      renderFromData({ players: playersCleared });
+      updateParRow(currentPar);
+      updateMiniBoard();
 
-  updateMiniBoard();
-
-  // Push to Firestore
-  try {
-    const ref = doc(db, 'wordleScorecards', courseSelect.value);
-    await setDoc(ref, {
-      course: courseSelect.value,
-      players: playersCleared,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-    console.log("Scores cleared");
-  } catch (err) {
-    console.error("Clear scores failed:", err);
-    alert("Clear failed. Check console.");
-  }
-});
-    
+      try {
+        const ref = doc(db, 'wordleScorecards', courseSelect.value);
+        await setDoc(ref, { course: courseSelect.value, players: playersCleared, updatedAt: serverTimestamp() }, { merge: true });
+      } catch (err) {
+        console.error("Clear scores failed:", err);
+        alert("Clear failed. Check console.");
+      }
+    });
   </script>
 
-<script>
-(function () {
-  const box = document.getElementById('wordBox');
-  if (!box) return;
+  <!-- Word of the Day (deterministic pick) -->
+  <script>
+    (function () {
+      const box = document.getElementById('wordBox');
+      if (!box) return;
 
-  const words = [
-    { word: "Aphelion", def: "The point in the orbit of a planet where it is farthest from the sun." },
-  { word: "Bruxism", def: "The involuntary grinding of teeth, especially while sleeping." },
-  { word: "Cacophony", def: "A harsh, discordant mixture of sounds." },
-  { word: "Defenestration", def: "The act of throwing someone or something out of a window." },
-  { word: "Ephemeral", def: "Lasting for a very short time." },
-  { word: "Fugacious", def: "Tending to disappear; fleeting." },
-  { word: "Grawlix", def: "A string of typographical symbols used to represent profanity." },
-  { word: "Halcyon", def: "Denoting a period of time in the past that was idyllically happy and peaceful." },
-  { word: "Ichthyology", def: "The branch of zoology that deals with fish." },
-  { word: "Jentacular", def: "Pertaining to breakfast." },
-  { word: "Kerfuffle", def: "A commotion or fuss." },
-  { word: "Limerence", def: "The state of being infatuated or obsessed with another person." },
-  { word: "Mumpsimus", def: "A stubborn person who insists on making an error in spite of being shown it's wrong." },
-  { word: "Noisome", def: "Having an extremely offensive smell." },
-  { word: "Ostentatious", def: "Characterized by vulgar or pretentious display." },
-  { word: "Peregrinate", def: "To travel or wander around from place to place." },
-  { word: "Quixotic", def: "Exceedingly idealistic; unrealistic and impractical." },
-  { word: "Recumbent", def: "Lying down." },
-  { word: "Susurrus", def: "Whispering, murmuring, or rustling." },
-  { word: "Tmesis", def: "The insertion of a word into another word, like 'abso-bloody-lutely'." },
-  { word: "Ululate", def: "To howl or wail as an expression of strong emotion." },
-  { word: "Vicissitude", def: "A change of circumstances or fortune, typically one that is unwelcome or unpleasant." },
-  { word: "Weltschmerz", def: "A feeling of melancholy and world-weariness." },
-  { word: "Xanthic", def: "Relating to a yellow color." },
-  { word: "Ylem", def: "In Big Bang theory, the primordial matter from which elements are formed." },
-  { word: "Zugzwang", def: "A situation in chess where any move worsens the player's position." },
-  { word: "Agog", def: "Very eager or curious to hear or see something." },
-  { word: "Borborygmus", def: "The rumbling noise produced by the movement of gas in the intestines." },
-  { word: "Catachresis", def: "The incorrect use of a word or phrase." },
-  { word: "Dysania", def: "The state of finding it hard to get out of bed in the morning." },
-  { word: "Eucatastrophe", def: "A sudden and favorable resolution of events in a story." },
-  { word: "Floccinaucinihilipilification", def: "The action of estimating something as worthless." },
-  { word: "Gobbledygook", def: "Language that is meaningless or hard to understand; jargon." },
-  { word: "Hiraeth", def: "A homesickness for a home you can't return to or never had." },
-  { word: "Insouciant", def: "Showing a casual lack of concern; indifferent." },
-  { word: "Jargogle", def: "To confuse or jumble." },
-  { word: "Kakistocracy", def: "Government run by the worst, least qualified, or most unscrupulous citizens." },
-  { word: "Lethologica", def: "The inability to remember the right word." },
-  { word: "Montivagant", def: "Wandering over hills and mountains." },
-  { word: "Nudiustertian", def: "Relating to the day before yesterday." },
-  { word: "Opsimath", def: "A person who begins to learn or study late in life." },
-  { word: "Psithurism", def: "The sound of wind through trees or rustling leaves." },
-  { word: "Quomodocunquize", def: "To make money in any way possible." },
-  { word: "Raconteur", def: "A person who tells anecdotes in a skillful and amusing way." },
-  { word: "Scripturient", def: "Having a strong urge to write." },
-  { word: "Tittynope", def: "A small quantity of something left over." },
-  { word: "Uhtceare", def: "Lying awake before dawn and worrying." },
-  { word: "Vorfreude", def: "The joyful, intense anticipation that comes from imagining future pleasures." },
-  { word: "Wamble", def: "Stomach rumbling or uneasiness." },
-  { word: "Xenization", def: "The act of traveling as a stranger." }
-  ];
+      const words = [
+        { word: "Aphelion", def: "The point in the orbit of a planet where it is farthest from the sun." },
+        { word: "Bruxism", def: "The involuntary grinding of teeth, especially while sleeping." },
+        { word: "Cacophony", def: "A harsh, discordant mixture of sounds." },
+        { word: "Defenestration", def: "The act of throwing someone or something out of a window." },
+        { word: "Ephemeral", def: "Lasting for a very short time." },
+        { word: "Fugacious", def: "Tending to disappear; fleeting." },
+        { word: "Grawlix", def: "A string of typographical symbols used to represent profanity." },
+        { word: "Halcyon", def: "Denoting a period of time in the past that was idyllically happy and peaceful." },
+        { word: "Ichthyology", def: "The branch of zoology that deals with fish." },
+        { word: "Jentacular", def: "Pertaining to breakfast." },
+        { word: "Kerfuffle", def: "A commotion or fuss." },
+        { word: "Limerence", def: "The state of being infatuated or obsessed with another person." },
+        { word: "Mumpsimus", def: "A stubborn person who insists on making an error in spite of being shown it's wrong." },
+        { word: "Noisome", def: "Having an extremely offensive smell." },
+        { word: "Ostentatious", def: "Characterized by vulgar or pretentious display." },
+        { word: "Peregrinate", def: "To travel or wander around from place to place." },
+        { word: "Quixotic", def: "Exceedingly idealistic; unrealistic and impractical." },
+        { word: "Recumbent", def: "Lying down." },
+        { word: "Susurrus", def: "Whispering, murmuring, or rustling." },
+        { word: "Tmesis", def: "Inserting a word into another word, like 'abso-bloody-lutely'." },
+        { word: "Ululate", def: "To howl or wail as an expression of strong emotion." },
+        { word: "Vicissitude", def: "A change of circumstances or fortune, typically unwelcome." },
+        { word: "Weltschmerz", def: "A feeling of melancholy and world-weariness." },
+        { word: "Xanthic", def: "Relating to a yellow color." },
+        { word: "Ylem", def: "In Big Bang theory, the primordial matter forming elements." },
+        { word: "Zugzwang", def: "In chess, any move worsens your position." },
+        { word: "Agog", def: "Very eager or curious to see something." },
+        { word: "Borborygmus", def: "Rumbling noise from gas moving in the intestines." },
+        { word: "Catachresis", def: "Incorrect use of a word or phrase." },
+        { word: "Dysania", def: "Finding it hard to get out of bed in the morning." },
+        { word: "Eucatastrophe", def: "A sudden favorable resolution of events in a story." },
+        { word: "Floccinaucinihilipilification", def: "Estimating something as worthless." },
+        { word: "Gobbledygook", def: "Language that’s meaningless or hard to understand; jargon." },
+        { word: "Hiraeth", def: "Homesickness for a home you can’t return to or never had." },
+        { word: "Insouciant", def: "Showing a casual lack of concern; indifferent." },
+        { word: "Jargogle", def: "To confuse or jumble." },
+        { word: "Kakistocracy", def: "Government by the worst or least qualified." },
+        { word: "Lethologica", def: "The inability to recall the right word." },
+        { word: "Montivagant", def: "Wandering over hills and mountains." },
+        { word: "Nudiustertian", def: "Relating to the day before yesterday." },
+        { word: "Opsimath", def: "A person who begins to study late in life." },
+        { word: "Psithurism", def: "The sound of wind through trees." },
+        { word: "Quomodocunquize", def: "To make money by any means possible." },
+        { word: "Raconteur", def: "A skilled, amusing storyteller." },
+        { word: "Scripturient", def: "Having a strong urge to write." },
+        { word: "Tittynope", def: "A small quantity left over." },
+        { word: "Uhtceare", def: "Lying awake before dawn and worrying." },
+        { word: "Vorfreude", def: "Joyful anticipation of future pleasures." },
+        { word: "Wamble", def: "Stomach rumbling or uneasiness." },
+        { word: "Xenization", def: "Traveling as a stranger." }
+      ];
 
-  // deterministic 'word of the day' so all players see the same one
-  const seed = new Date().toDateString();
-  let hash = 0; for (let i = 0; i < seed.length; i++) hash = (hash*31 + seed.charCodeAt(i)) >>> 0;
-  const pick = words[hash % words.length];
+      const seed = new Date().toDateString();
+      let hash = 0; for (let i = 0; i < seed.length; i++) hash = (hash*31 + seed.charCodeAt(i)) >>> 0;
+      const pick = words[hash % words.length];
 
-  box.innerHTML = `
-    <h4>Word of the Day</h4>
-    <span class="w">${pick.word}</span>
-    <span class="d"> — ${pick.def}</span>
-  `;
-})();
-</script>
-  
+      box.innerHTML = `
+        <h4>Word of the Day</h4>
+        <span class="w">${pick.word}</span>
+        <span class="d"> — ${pick.def}</span>
+      `;
+    })();
+  </script>
 </body>
 </html>
