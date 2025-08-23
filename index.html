@@ -261,6 +261,16 @@ testWriteCourse(); // runs once on load
       courseSelect.appendChild(option);
     });
 
+const courseNameHeader = document.getElementById('courseName');
+
+// Update course name on load
+courseNameHeader.textContent = courseSelect.value;
+
+// Update course name whenever a new course is selected
+courseSelect.addEventListener('change', e => {
+  courseNameHeader.textContent = e.target.value;
+});
+    
     let currentPar = [];
     let unsubscribe = null;
     let applyingRemote = false;
