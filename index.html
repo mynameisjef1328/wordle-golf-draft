@@ -167,7 +167,13 @@ th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
   <table id="scorecard">
     <thead>
   <tr>
-    <th id="courseLabel">Course</th>
+    <th id="courseLabel">
+  <div class="label-stack">
+    <span class="label-course">Course</span>
+    <span class="label-hole">Hole</span>
+    <span class="label-par">Par</span>
+  </div>
+</th>
     <th id="courseName" colspan="18">Torrey Pines</th>
     <th>Total</th>
     <th>+/-</th>
