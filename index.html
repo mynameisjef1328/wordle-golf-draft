@@ -19,55 +19,34 @@
   font-weight: bold;
   background: #eee;
   text-align: left;
+      
 }
-
-    /* Mini scoreboard box */
-#miniBoard {
-  position: fixed;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  left: max(12px, env(safe-area-inset-left));
-  min-width: 180px;
-  max-width: 260px;
-  padding: 10px 12px;
-  background: #eee;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font: 14px/1.4 system-ui, -apple-system, Arial, sans-serif;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  color: #111;
-  z-index: 4; /* above table sticky headers */
-}
-#miniBoard h4 { margin: 0 0 6px 0; font-size: 14px; font-weight: 700; }
-#miniBoard .row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
-#miniBoard .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#miniBoard .score { font-variant-numeric: tabular-nums; }
-
     /* Word of the Day box */
 /* Word of the Day card */
 #wordBox{
   position: fixed;
   bottom: max(12px, env(safe-area-inset-bottom));
-  left: 220px;
+  left: max(12px, env(safe-area-inset-left));  /* stick flush to left edge */
   max-width: 700px;
-  background: #0B6623;      /* Masters green */
-  border: 1px solid #084d1a; /* darker green border */
+  background: #0B6623;         /* Masters green */
+  border: 1px solid #084d1a;   /* darker green border */
   border-radius: 8px;
   padding: 10px 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,.2);
-  color: #fff;              /* white text for contrast */
+  color: #fff;
   font-size: 23px;
-  font-weight: bold;        /* bold text */
+  font-weight: bold;
   line-height: 1.6;
   z-index: 4;
 }
-  /* Rules of the Game box */
+
+/* Rules of the Game box */
 #rulesBox {
   position: fixed;
   bottom: max(12px, env(safe-area-inset-bottom));
-  left: 1050px;              /* push farther right than before */
-  max-width: 300px;          /* a little narrower */
-  max-height: 180px;         /* keep it from covering the scorecard */
-  overflow-y: auto;          /* scroll if content is taller */
+  right: max(12px, env(safe-area-inset-right)); /* stick to right edge */
+  left: auto;                  /* ensure it's not left-anchored */
+  max-width: 320px;
   background: #f9f9f9;
   border: 2px solid #ccc;
   border-radius: 8px;
@@ -75,30 +54,23 @@
   box-shadow: 0 2px 10px rgba(0,0,0,.15);
   color: #222;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.5;
   z-index: 4;
 }
+#rulesBox h4 { margin-top: 0; font-size: 16px; font-weight: bold; }
+#rulesBox ul { padding-left: 20px; margin: 8px 0 0 0; }
 
-#rulesBox h4 {
-  margin-top: 0;
-  font-size: 16px;
-  font-weight: bold;
-}
-#rulesBox ul {
-  padding-left: 20px;
-  margin: 8px 0 0 0;
-}
-    
-@media (max-width: 700px){
-  #wordBox{ width: calc(100% - 24px); left: 50%; transform: translateX(-50%); }
-}
-
-@media (max-width: 600px){
-  #miniBoard {
-    bottom: max(8px, env(safe-area-inset-bottom));
-    left: max(8px, env(safe-area-inset-left));
-    min-width: 150px;
-    padding: 8px 10px;
+/* Responsive: on narrow screens, center the word box and let rules stack */
+@media (max-width: 900px){
+  #wordBox{
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: none;
+  }
+  #rulesBox{
+    position: static;          /* take it out of fixed flow */
+    margin-top: 12px;
   }
 }
 
@@ -152,9 +124,6 @@ th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
     </thead>
     <tbody></tbody>
   </table>
-
-<!-- mini scoreboard goes right after the table closes -->
-<div id="miniBoard" aria-live="polite"></div>
 
 <!-- Word of the Day box -->
 <div id="wordBox" aria-live="polite"></div>
@@ -226,12 +195,11 @@ testWriteCourse(); // runs once on load
 
     // ---------- Data ----------
     const courses = {
-      'Sweetwater Creek': [4,4,3,4,5,4,4,3,5,4,3,4,5,4,4,3,4,5],
+      'Sweetwater Creek': [4,4,3,5,4,3,4,5,4,3,4,5,4,4,4,3,5,4],
       'St. Andrews':  [4,5,4,3,4,4,5,3,4,4,3,5,4,4,3,4,5,4],
       'Augusta':      [5,4,3,4,5,3,4,4,4,3,5,4,4,3,4,5,4,3],
       'Bully Pulpit':  [4,3,5,4,4,3,4,5,4,4,3,4,4,5,3,4,5,4],
-      'Torrey Pines': [4,4,5,3,4,5,4,3,4,4,4,5,3,4,4,5,3,4],
-      'TPC Sawgrass': [4,4,3,5,4,3,4,5,4,3,4,5,4,4,3,5,4,3],
+      'Torrey Pines': [4,4,3,5,4,3,4,5,4,3,4,5,4,4,4,3,5,4],
       'Bethpage Black': [4,5,3,4,4,5,4,4,3,4,5,3,4,4,5,3,4,4],
       'Whistling Straits': [4,3,5,4,4,5,3,4,4,5,4,3,4,4,5,4,3,4],
       'Pebble Beach': [4,4,5,3,4,3,4,5,4,4,4,5,3,4,4,5,3,4],
@@ -269,6 +237,7 @@ testWriteCourse(); // runs once on load
 
     function buildPlayerRow(name = '', rowIndex = 0, savedScores = []) {
       const row = document.createElement('tr');
+      row.classList.add('player-row'); 
 
       const nameCell = document.createElement('td');
       const nameInput = document.createElement('input');
@@ -330,9 +299,6 @@ testWriteCourse(); // runs once on load
   row.querySelector('.diff').textContent = total
     ? (diff > 0 ? `+${diff}` : `${diff}`)
     : '0';
-
-  // keep the mini board in sync
-  updateMiniBoard();
 }
 
 function updateMiniBoard() {
@@ -374,15 +340,18 @@ function updateMiniBoard() {
     const buildDefaultPlayers = () =>
       Array.from({ length: 4 }, (_, i) => ({ name: `Player ${i + 1}`, scores: [] }));
 
-    function readTableData() {
-      const data = { course: courseSelect.value, players: [] };
-      tbody.querySelectorAll('tr').forEach(row => {
-        const name = row.querySelector('input[type="text"]')?.value || '';
-        const scores = Array.from(row.querySelectorAll('input[type="number"]')).map(i => i.value);
-        data.players.push({ name, scores });
-      });
-      return data;
-    }
+   function readTableData() {
+  const data = { course: courseSelect.value, players: [] };
+
+  document.querySelectorAll('#scorecard tbody tr.player-row').forEach(row => {
+    const name = row.querySelector('input[type="text"]')?.value || '';
+    const scores = Array.from(row.querySelectorAll('input[type="number"]')).map(i => i.value);
+    data.players.push({ name, scores });
+  });
+
+  return data;
+}
+
 
     async function saveScoresToFirestore() {
       if (applyingRemote || !db) return;
@@ -395,28 +364,42 @@ function updateMiniBoard() {
       try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
     }
 
-    function renderFromData(docData) {
+   function renderFromData(docData) {
   tbody.innerHTML = '';
 
-  // Add the Player label row at the very top
+  // "Player" header cell in first column
   const labelRow = document.createElement('tr');
   labelRow.classList.add('player-label');
   const labelCell = document.createElement('td');
   labelCell.textContent = 'Player';
   labelRow.appendChild(labelCell);
-
-  // Fill the rest of that row with empty cells to keep alignment
-  for (let i = 0; i < 20; i++) {  // 18 holes + Total + Diff
+  // pad out the header row (18 holes + Total + +/- = 20)
+  for (let i = 0; i < 20; i++) {
     labelRow.appendChild(document.createElement('td'));
   }
   tbody.appendChild(labelRow);
 
-  // Then build actual player rows
-  const players = docData?.players?.length ? docData.players : buildDefaultPlayers();
-  players.forEach((p, i) => tbody.appendChild(buildPlayerRow(p.name, i, p.scores || [])));
+  // normalize incoming players (remove truly empty rows)
+  const raw = Array.isArray(docData?.players) ? docData.players : [];
+  const players = raw.filter(p => {
+    const hasName = !!(p?.name || '').trim();
+    const hasScore = (p?.scores || []).some(s => (s ?? '').toString().trim() !== '');
+    return hasName || hasScore;
+  });
 
-  updateMiniBoard(); // keep floating box in sync
+  // ensure at least 4 rows show up
+  while (players.length < 4) {
+    players.push({ name: `Player ${players.length + 1}`, scores: [] });
+  }
+
+  // build rows
+  players.forEach((p, i) => {
+    tbody.appendChild(buildPlayerRow(p.name || '', i, p.scores || []));
+  });
+
+  updateMiniBoard();
 }
+
 
     async function ensureDocExists(courseName) {
       if (!db) return;
@@ -479,10 +462,13 @@ function updateMiniBoard() {
 document.getElementById('clearBtn').addEventListener('click', async () => {
   if (!confirm("Clear all player scores for this course?")) return;
 
-  const playersCleared = Array.from(tbody.querySelectorAll('tr')).map((row, i) => {
-    const name = row.querySelector('input[type="text"]')?.value || `Player ${i+1}`;
-    return { name, scores: [] };
-  });
+const playersCleared = Array.from(
+  document.querySelectorAll('#scorecard tbody tr.player-row')
+).map((row, i) => {
+  const name = row.querySelector('input[type="text"]')?.value || `Player ${i+1}`;
+  return { name, scores: [] };
+});
+
 
   // Update the table immediately
   renderFromData({ players: playersCleared });
