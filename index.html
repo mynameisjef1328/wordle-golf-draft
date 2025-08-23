@@ -93,6 +93,17 @@ thead th {
 
 /* optional: subtle divider where the sticky column meets the rest */
 th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
+
+    @media (prefers-color-scheme: dark) {
+  body { background: #111; color: #eee; }
+  th { background-color: #555; color: #fff; }
+  td, th { border-color: #333; }
+  .player-label td { background: #1b1b1b; }
+  #wordBox { background:#0b5a1f; border-color:#064216; }
+  #rulesBox { background:#1a1a1a; border-color:#333; color:#eee; }
+  .under-par { background: #0c4; color:#002a00; }
+  .over-par  { background: #d66; }
+}
     
   </style>
 </head>
@@ -195,11 +206,10 @@ testWriteCourse(); // runs once on load
 
     // ---------- Data ----------
     const courses = {
-      'Sweetwater Creek': [4,4,3,5,4,3,4,5,4,3,4,5,4,4,4,3,5,4],
       'St. Andrews':  [4,5,4,3,4,4,5,3,4,4,3,5,4,4,3,4,5,4],
       'Augusta':      [5,4,3,4,5,3,4,4,4,3,5,4,4,3,4,5,4,3],
       'Bully Pulpit':  [4,3,5,4,4,3,4,5,4,4,3,4,4,5,3,4,5,4],
-      'Torrey Pines': [4,4,3,5,4,3,4,5,4,3,4,5,4,4,4,3,5,4],
+      'Torrey Pines': [4,4,5,3,4,5,4,3,4,4,4,5,3,4,4,5,3,4],
       'Bethpage Black': [4,5,3,4,4,5,4,4,3,4,5,3,4,4,5,3,4,4],
       'Whistling Straits': [4,3,5,4,4,5,3,4,4,5,4,3,4,4,5,4,3,4],
       'Pebble Beach': [4,4,5,3,4,3,4,5,4,4,4,5,3,4,4,5,3,4],
