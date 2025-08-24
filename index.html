@@ -3,472 +3,460 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wordle Golf Scorecard</title>
+  <title>Jef's Wonderful Wordle Golf Scorecard</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background-color: #999; color: white; }
+    th { background-color: #999; color: #fff; }
+
+    /* score coloring */
     .under-par { background-color: lightgreen; }
     .over-par  { background-color: lightcoral; }
     .even-par  { background-color: black; }
+
+    /* inputs */
     input[type="number"] { width: 50px; text-align: center; display: inline-block; vertical-align: middle; }
-    input[type="text"] { width: 100px; }
-    
-    .player-label td {
-  font-weight: bold;
-  background: #eee;
-  text-align: left;
-      
-}
-    /* Word of the Day box */
-/* Word of the Day card */
-#wordBox{
-  position: fixed;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  left: max(12px, env(safe-area-inset-left));  /* stick flush to left edge */
-  max-width: 700px;
-  background: #0B6623;         /* Masters green */
-  border: 1px solid #084d1a;   /* darker green border */
-  border-radius: 8px;
-  padding: 10px 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.2);
-  color: #fff;
-  font-size: 23px;
-  font-weight: bold;
-  line-height: 1.6;
-  z-index: 4;
-}
+    input[type="text"]   { width: 100px; }
 
-/* Rules of the Game box */
-#rulesBox {
-  position: fixed;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  right: max(12px, env(safe-area-inset-right)); /* stick to right edge */
-  left: auto;                  /* ensure it's not left-anchored */
-  max-width: 500px;
-  background: #f9f9f9;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.15);
-  color: #222;
-  font-size: 14px;
-  line-height: 1.5;
-  z-index: 4;
-}
-#rulesBox h4 { margin-top: 0; font-size: 16px; font-weight: bold; }
-#rulesBox ul { padding-left: 20px; margin: 8px 0 0 0; }
+    /* sticky first column + header row */
+    th:first-child, td:first-child {
+      position: sticky; left: 0; background: #eee; z-index: 2; background-clip: padding-box;
+    }
+    thead th { position: sticky; top: 0; z-index: 3; background: #999; }
+    th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
 
-/* Responsive: on narrow screens, center the word box and let rules stack */
-@media (max-width: 900px){
-  #wordBox{
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 24px);
-    max-width: none;
-  }
-  #rulesBox{
-    position: static;          /* take it out of fixed flow */
-    margin-top: 12px;
-  }
-}
+    .player-label td { font-weight: bold; background: #eee; text-align: left; }
 
-/* keep sticky cells opaque over scrolled content */
-th:first-child, td:first-child { 
-  position: sticky;
-  left: 0;
-  background: #eee;            /* already set */
-  z-index: 2;
-  background-clip: padding-box; /* avoids odd borders on iOS */
-}
+    /* labels in first column */
+    #scorecard thead th#courseLabel,
+    #scorecard thead th#holeLabel,
+    #scorecard thead th.par-label {
+      text-align: left !important;
+      color: #000 !important;
+      background: #eee !important;
+      padding-left: 8px;
+      font-weight: bold;
+    }
 
-/* keep header row on top while scrolling */
-thead th {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background: #999;            /* match your header color while sticky */
-}
+    /* uniform controls */
+    .btn, #courseSelect {
+      height: 40px;
+      padding: 6px 14px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #888;
+      background-color: #fff;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    }
+    .btn + .btn { margin-left: 8px; }
+    #courseSelect { margin-left: 12px; }
 
-/* optional: subtle divider where the sticky column meets the rest */
-th:first-child, td:first-child { box-shadow: 2px 0 0 rgba(0,0,0,.06); }
+    .btn:hover {
+      background-color: #4CAF50;
+      color: #fff;
+      border-color: #3e8e41;
+      transition: background-color .2s ease, color .2s ease;
+    }
 
+    /* prettier native select arrow */
+    #courseSelect {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 14px;
+      padding-right: 30px;
+    }
+
+    /* course name banner */
+    #courseName {
+      font-size: 16px;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-align: center;
+      background-color: #999;
+      color: #fff;
+    }
+
+    /* highlight current hole */
+    .current-hole { outline: 2px solid rgba(0,120,255,.25); box-shadow: inset 0 0 8px rgba(0,120,255,.25); }
+    thead th.current-hole { outline: 2px solid rgba(0,120,255,.35); }
+
+    /* Word of the Day */
+    #wordBox{
+      position: fixed; bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left));
+      max-width: 700px; background: #0B6623; border: 1px solid #084d1a; border-radius: 8px; padding: 10px 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.2); color: #fff; font-size: 23px; font-weight: bold; line-height: 1.6; z-index: 4;
+    }
+    /* Rules box */
+    #rulesBox {
+      position: fixed; bottom: max(12px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right));
+      max-width: 500px; background: #f9f9f9; border: 2px solid #ccc; border-radius: 8px; padding: 12px 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15); color: #222; font-size: 14px; line-height: 1.5; z-index: 4;
+    }
+    #rulesBox h4 { margin-top: 0; font-size: 16px; font-weight: bold; }
+    #rulesBox ul { padding-left: 20px; margin: 8px 0 0 0; }
+
+    /* responsive tweaks */
+    @media (max-width: 900px){
+      #wordBox { left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: none; }
+      #rulesBox { position: static; margin-top: 12px; }
+    }
+    @media (max-width: 768px) {
+      input[type="number"] { width: 40px; font-size: 16px; padding: 4px; }
+      input[type="text"]   { width: 90px;  font-size: 16px; }
+      th, td { padding: 6px; }
+    }
+
+    /* dark mode */
     @media (prefers-color-scheme: dark) {
-  body { background: #111; color: #eee; }
-  th { background-color: #555; color: #fff; }
-  td, th { border-color: #333; }
-  .player-label td { background: #1b1b1b; }
-  #wordBox { background:#0b5a1f; border-color:#064216; }
-  #rulesBox { background:#1a1a1a; border-color:#333; color:#eee; }
-  .under-par { background: #0c4; color:#002a00; }
-  .over-par  { background: #d66; }
-}
+      body { background: #111; color: #eee; }
+      th { background-color: #555; color: #fff; }
+      td, th { border-color: #333; }
+      .player-label td { background: #1b1b1b; }
+      #wordBox { background:#0b5a1f; border-color:#064216; }
+      #rulesBox { background:#1a1a1a; border-color:#333; color:#eee; }
+      .under-par { background: #0c4; color:#002a00; }
+      .over-par  { background: #d66; }
+    }
 
-/* Make buttons and dropdown uniform size & style */
-#clearBtn,
-#clearNamesBtn,
-#courseSelect {
-  height: 40px;              /* uniform height */
-  padding: 6px 14px;         /* same padding */
-  font-size: 16px;           /* larger, easy-to-read text */
-  border-radius: 6px;        /* smooth rounded edges */
-  border: 1px solid #888;    /* subtle border */
-  background-color: #fff;    /* clean background */
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* subtle lift */
-}
+    /* ---------- Birdie celebration ---------- */
+    @keyframes birdieFlash {
+      0%   { box-shadow: inset 0 0 0 0 rgba(46,204,113,0); }
+      35%  { box-shadow: inset 0 0 0 4px rgba(46,204,113,.45); }
+      100% { box-shadow: inset 0 0 0 0 rgba(46,204,113,0); }
+    }
+    @keyframes birdieEmoji {
+      0%   { opacity: 0; transform: translate(-50%, -10%) scale(.6); }
+      60%  { opacity: 1; transform: translate(-50%, -55%) scale(1.1); }
+      100% { opacity: 0; transform: translate(-50%, -80%) scale(.9); }
+    }
+    td.birdie-pop { position: relative; animation: birdieFlash .8s ease-out 1; }
+    td.birdie-pop::after {
+      content: "🐦";
+      position: absolute; left: 50%; top: 50%;
+      width: 1.2em; height: 1.2em; transform: translate(-50%, -50%);
+      pointer-events: none; animation: birdieEmoji .8s ease-out 1 forwards;
+    }
 
-/* Hover effects for buttons only */
-#clearBtn:hover,
-#clearNamesBtn:hover {
-  background-color: #4CAF50;  /* Masters green hover */
-  color: #fff;
-  border-color: #3e8e41;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-/* Optional: improve dropdown arrow visibility */
-#courseSelect {
-  appearance: none;             /* remove default browser style */
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px;
-  padding-right: 30px;          /* room for custom arrow */
-}
-
-#courseLabel {
-  font-weight: bold;
-  background: #eee;
-  text-align: left;
-  padding-left: 8px;
-}
-
-#courseName {
-  font-size: 16px;
-  font-weight: bold;
-  text-transform: uppercase;
-  text-align: center;
-  background-color: #999;
-  color: white;
-}
-    
+    /* ---------- Sync badge ---------- */
+    #syncBadge{
+      position: fixed; top: 12px; right: 12px; z-index: 6;
+      font: 600 12px/1 system-ui, Arial, sans-serif;
+      padding: 6px 10px; border-radius: 14px;
+      color: #fff; background: #777; box-shadow: 0 1px 6px rgba(0,0,0,.15);
+    }
+    #syncBadge.is-synced  { background:#2ecc71; }
+    #syncBadge.is-syncing { background:#f39c12; }
+    #syncBadge.is-offline { background:#e74c3c; }
   </style>
 </head>
 <body>
-  <h2>Wordle Golf Scorecard</h2>
+  <h2>Jef's Wonderful Wordle Golf Scorecard</h2>
 
   <label for="courseSelect">Choose a course:</label>
   <select id="courseSelect"></select>
-  <button id="clearBtn" style="margin-left:12px;">Clear Scores</button>
-  <button id="clearNamesBtn" type="button" style="margin-left:8px;">Clear Names</button>
+  <button id="clearBtn" class="btn">Clear Scores</button>
+  <button id="clearNamesBtn" class="btn" type="button">Clear Names</button>
 
-  <table id="scorecard">
-    <thead>
-  <tr>
-    <th id="courseLabel">Course</th>
-    <th id="courseName" colspan="18">Torrey Pines</th>
-    <th>Total</th>
-    <th>+/-</th>
-  </tr>
-      <tr>
-        <th></th>
-        <script>
-          for (let i = 1; i <= 18; i++) document.write(`<th>${i}</th>`);
-        </script>
-        <th>Par</th>
-        <th></th>
-      </tr>
-      <tr id="parRow"><th>Par</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="table-wrap">
+    <table id="scorecard" role="table" aria-label="Wordle Golf Scorecard">
+      <thead>
+        <tr id="courseHeader">
+          <th id="courseLabel" scope="row">Course</th>
+          <th id="courseName" colspan="18">Torrey Pines</th>
+          <th scope="col">Total</th>
+          <th scope="col">+/-</th>
+        </tr>
+        <tr id="holeHeader">
+          <th id="holeLabel" scope="row">Hole</th>
+          <!-- 1..18 + Par + blank added by JS -->
+        </tr>
+        <tr id="parRow" aria-label="Par values"></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-<!-- Word of the Day box -->
-<div id="wordBox" aria-live="polite"></div>
+  <div id="syncBadge" class="">Connecting…</div>
 
-  <!-- Rules of Wordle Golf box -->
-<div id="rulesBox" aria-live="polite">
-  <h4>🏌️ Wordle Golf Rules</h4>
-  <ul>
-    <li>Each hole = one Wordle puzzle (one per day).</li>
-    <li>Your score = number of guesses used to solve the Wordle.</li>
-    <li>Solve it in <strong>3 tries</strong> → you score <strong>3</strong> (like 3 strokes).</li>
-    <li>If you <strong>don’t solve in 6 tries</strong> or <strong>forget to play</strong>, your score = <strong>7</strong>.</li>
-    <li>Lowest total score wins, just like golf.</li>
-    <li>Track progress hole by hole, and compare live scores with friends!</li>
-  </ul>
-</div>
-  
-  <!-- MOVE THE SCRIPT OUTSIDE TBODY -->
+  <!-- Word of the Day -->
+  <div id="wordBox" aria-live="polite"></div>
+
+  <!-- Rules -->
+  <div id="rulesBox" aria-live="polite">
+    <h4>🏌️ Wordle Golf Rules</h4>
+    <ul>
+      <li>Each hole = one Wordle puzzle (one per day).</li>
+      <li>Your score = number of guesses used to solve the Wordle.</li>
+      <li>Solve it in <strong>3 tries</strong> → you score <strong>3</strong> (like 3 strokes).</li>
+      <li>If you <strong>don’t solve in 6 tries</strong> or <strong>forget to play</strong>, your score = <strong>7</strong>.</li>
+      <li>Lowest total score wins, just like golf.</li>
+      <li>Track progress hole by hole, and compare live scores with friends!</li>
+    </ul>
+  </div>
+
+  <!-- APP -->
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC9-Z6E59grKoq_pD8acGTre2Jx-1NQ_Qc",
-    authDomain: "wordle-golf-6c636.firebaseapp.com",
-    projectId: "wordle-golf-6c636",
-    storageBucket: "wordle-golf-6c636.appspot.com",
-    messagingSenderId: "672104265687",
-    appId: "1:672104265687:web:2c16b0539fcd52ca4d7d92"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyC9-Z6E59grKoq_pD8acGTre2Jx-1NQ_Qc",
+      authDomain: "wordle-golf-6c636.firebaseapp.com",
+      projectId: "wordle-golf-6c636",
+      storageBucket: "wordle-golf-6c636.appspot.com",
+      messagingSenderId: "672104265687",
+      appId: "1:672104265687:web:2c16b0539fcd52ca4d7d92"
+    };
 
-  let app, db;
-(async () => {
-  try {
-    app = initializeApp(firebaseConfig);
-    db  = getFirestore(app);
-    console.log("Firebase OK:", firebaseConfig.projectId);
+    // ---------- Sync badge helpers ----------
+    const syncBadge = document.getElementById('syncBadge');
+    const setSync = (state, text) => {
+      syncBadge.className = '';
+      if (state) syncBadge.classList.add(state);
+      syncBadge.textContent = text || ({
+        'is-offline':'Offline',
+        'is-syncing':'Syncing…',
+        'is-synced':'Synced'
+      }[state] || '—');
+    };
 
-    // optional quick ping
-    await setDoc(doc(db, "diagnostics", "ping"),
-      { ok: true, ts: Date.now() }, { merge: true });
-    console.log("Ping wrote");
-  } catch (e) {
-    console.error("Firebase init/ping error:", e);
-  }
-})();
+    let app, db;
+    (async () => {
+      try {
+        app = initializeApp(firebaseConfig);
+        db  = getFirestore(app);
+        setSync('is-syncing', 'Connecting…');
+      } catch (e) {
+        console.error("Firebase init error:", e);
+        setSync('is-offline', 'Offline');
+      }
+    })();
 
-    async function testWriteCourse(course = "Bully Pulpit") {
-  try {
-    await setDoc(doc(db, "wordleScorecards", course), {
-      course,
-      players: [
-        { name: "Tester 1", scores: ["3","4","","","","","","","","","","","","","","","",""] },
-        { name: "Tester 2", scores: [] },
-        { name: "Player 3", scores: [] },
-        { name: "Player 4", scores: [] }
-      ],
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-    console.log("testWriteCourse OK");
-  } catch (e) {
-    console.error("testWriteCourse error:", e);
-  }
-}
-
-testWriteCourse(); // runs once on load
-
-  // ...keep the rest of your scorecard code here (courses, updateParRow, buildPlayerRow, saveScoresToFirestore, etc.)
-
-    // ---------- Data ----------
+    // --- Data ---
     const courses = {
       'St. Andrews':  [4,5,4,3,4,4,5,3,4,4,3,5,4,4,3,4,5,4],
       'Augusta':      [5,4,3,4,5,3,4,4,4,3,5,4,4,3,4,5,4,3],
-      'Bully Pulpit':  [4,3,5,4,4,3,4,5,4,4,3,4,4,5,3,4,5,4],
+      'Bully Pulpit': [4,3,5,4,4,3,4,5,4,4,3,4,4,5,3,4,5,4],
       'Torrey Pines': [4,4,5,3,4,5,4,3,4,4,4,5,3,4,4,5,3,4],
-      'Bethpage Black': [4,5,3,4,4,5,4,4,3,4,5,3,4,4,5,3,4,4],
-      'Whistling Straits': [4,3,5,4,4,5,3,4,4,5,4,3,4,4,5,4,3,4],
+      'Bethpage Black':[4,5,3,4,4,5,4,4,3,4,5,3,4,4,5,3,4,4],
+      'Whistling Straits':[4,3,5,4,4,5,3,4,4,5,4,3,4,4,5,4,3,4],
       'Pebble Beach': [4,4,5,3,4,3,4,5,4,4,4,5,3,4,4,5,3,4],
       'Congrssional': [3,4,5,4,3,5,4,4,4,5,4,3,4,5,4,4,3,4]
     };
 
-    const parRow        = document.getElementById('parRow');
+    // --- DOM refs ---
+    const table      = document.getElementById('scorecard');
+    const holeHeader = document.getElementById('holeHeader');
+    const parRow     = document.getElementById('parRow');
+    const courseNameHeader = document.getElementById('courseName');
     const courseSelect  = document.getElementById('courseSelect');
-    const tbody         = document.querySelector('#scorecard tbody');
+    const tbody         = table.querySelector('tbody');
 
     // Populate course dropdown
     Object.keys(courses).forEach(course => {
       const option = document.createElement('option');
-      option.value = course;
-      option.textContent = course;
+      option.value = course; option.textContent = course;
       courseSelect.appendChild(option);
     });
 
-const courseNameHeader = document.getElementById('courseName');
+    // Build the "Hole" header row (1..18 + Par + blank)
+    function buildHoleHeader() {
+      holeHeader.innerHTML = '';
+      const thLabel = document.createElement('th');
+      thLabel.id = 'holeLabel'; thLabel.scope = 'row'; thLabel.textContent = 'Hole';
+      holeHeader.appendChild(thLabel);
+      for (let i = 1; i <= 18; i++) {
+        const th = document.createElement('th');
+        th.scope = 'col'; th.textContent = String(i);
+        holeHeader.appendChild(th);
+      }
+      const thPar = document.createElement('th'); thPar.textContent = 'Par'; thPar.scope = 'col';
+      const thBlank = document.createElement('th'); thBlank.textContent = '';
+      holeHeader.append(thPar, thBlank);
+    }
+    buildHoleHeader();
 
-// Update course name on load
-courseNameHeader.textContent = courseSelect.value;
-
-// Update course name whenever a new course is selected
-courseSelect.addEventListener('change', e => {
-  courseNameHeader.textContent = e.target.value;
-});
-    
+    // Live state
     let currentPar = [];
     let unsubscribe = null;
     let applyingRemote = false;
 
+    // Helpers
+    const buildDefaultPlayers = () => Array.from({ length: 4 }, (_, i) => ({ name: `Player ${i+1}`, scores: [] }));
+
     function updateParRow(parValues) {
       parRow.innerHTML = '';
-      parRow.innerHTML += '<th></th>';
-      parValues.forEach(par => {
-        const th = document.createElement('th');
-        th.textContent = par;
+      const label = document.createElement('th');
+      label.className = 'par-label'; label.textContent = 'Par'; label.scope = 'row';
+      parRow.appendChild(label);
+
+      parValues.forEach(p => {
+        const th = document.createElement('th'); th.textContent = p; th.scope = 'col';
         parRow.appendChild(th);
       });
-      const parTotal = parValues.reduce((sum, p) => sum + p, 0);
-      parRow.innerHTML += `<th>${parTotal}</th>`;
-      parRow.innerHTML += '<th></th>';
+
+      const total = parValues.reduce((s,p)=>s+p,0);
+      parRow.appendChild(Object.assign(document.createElement('th'), { textContent: total }));
+      parRow.appendChild(Object.assign(document.createElement('th'), { textContent: '' }));
+    }
+
+    function setBirdieAnimation(cell, isBirdie) {
+      cell.classList.remove('birdie-pop');
+      if (!isBirdie) return;
+      // Kick animation on next frame so re-adding works
+      requestAnimationFrame(() => {
+        cell.classList.add('birdie-pop');
+        cell.addEventListener('animationend', () => cell.classList.remove('birdie-pop'), { once: true });
+      });
+    }
+
+    function setCellClassForScore(input, par) {
+      const cell = input.parentElement;
+      cell.className = '';
+      const val = parseInt(input.value);
+      if (isNaN(val)) return;
+
+      if (val < par) {
+        cell.classList.add('under-par');
+        setBirdieAnimation(cell, true);
+      } else if (val > par) {
+        cell.classList.add('over-par');
+      } else {
+        cell.classList.add('even-par');
+      }
+    }
+
+    function calculateRowTotals(row) {
+      const inputs = row.querySelectorAll('input[type="number"]');
+      let total = 0, parTotal = 0;
+
+      inputs.forEach((input, idx) => {
+        const val = parseInt(input.value);
+        const par = currentPar[idx];
+        setCellClassForScore(input, par);
+        if (!isNaN(val)) { total += val; parTotal += par; }
+      });
+
+      row.querySelector('.total').textContent = total || '0';
+      const diff = total - parTotal;
+      row.querySelector('.diff').textContent = total ? (diff > 0 ? `+${diff}` : `${diff}`) : '0';
+    }
+
+    // Fast entry: Enter / ← / →
+    function addNavKeys(input) {
+      input.addEventListener('keydown', e => {
+        const td  = input.parentElement;
+        const row = td?.parentElement;
+        if (!row) return;
+
+        const cells = Array.from(row.querySelectorAll('td input[type="number"]'));
+        const idx   = cells.indexOf(input);
+
+        let next = null;
+        if (e.key === 'Enter' || e.key === 'ArrowRight') {
+          next = cells[idx + 1] || cells[idx];
+        } else if (e.key === 'ArrowLeft') {
+          next = cells[idx - 1] || cells[idx];
+        }
+
+        if (next && next !== input) {
+          e.preventDefault();
+          next.focus();
+          next.select?.();
+        }
+      });
     }
 
     function buildPlayerRow(name = '', rowIndex = 0, savedScores = []) {
       const row = document.createElement('tr');
-      row.classList.add('player-row'); 
+      row.classList.add('player-row');
 
-      const nameCell = document.createElement('td');
+      const nameCell  = document.createElement('td');
       const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.value = name;
-      nameInput.addEventListener('input', () => saveScoresToFirestore());
+      nameInput.type = 'text'; nameInput.value = name;
+      nameInput.addEventListener('input', () => scheduleSave());
       nameCell.appendChild(nameInput);
       row.appendChild(nameCell);
 
       for (let i = 0; i < 18; i++) {
         const cell = document.createElement('td');
         const input = document.createElement('input');
-        input.type = 'number';
-        input.min = 1;
+        input.type = 'number'; input.min = 1; input.inputMode = 'numeric';
         input.value = savedScores[i] || '';
-        input.addEventListener('input', () => {
-          calculate(row);
-          saveScoresToFirestore();
-        });
+        input.addEventListener('input', () => { calculateRowTotals(row); scheduleSave(); });
+        addNavKeys(input);
         cell.appendChild(input);
         row.appendChild(cell);
       }
 
-      const totalCell = document.createElement('td');
-      totalCell.className = 'total';
-      totalCell.textContent = '0';
-      row.appendChild(totalCell);
+      const totalCell = document.createElement('td'); totalCell.className = 'total'; totalCell.textContent = '0'; totalCell.setAttribute('aria-live','polite');
+      const diffCell  = document.createElement('td'); diffCell.className  = 'diff';  diffCell.textContent  = '0'; diffCell.setAttribute('aria-live','polite');
+      row.append(totalCell, diffCell);
 
-      const diffCell = document.createElement('td');
-      diffCell.className = 'diff';
-      diffCell.textContent = '0';
-      row.appendChild(diffCell);
-
-      setTimeout(() => calculate(row), 0);
+      setTimeout(() => calculateRowTotals(row), 0);
       return row;
     }
 
-    function calculate(row) {
-  const inputs = row.querySelectorAll('input[type="number"]');
-  let total = 0;
-  let parTotal = 0;
-
-  inputs.forEach((input, index) => {
-    const val = parseInt(input.value);
-    const par = currentPar[index];
-    const cell = input.parentElement;
-    cell.className = '';
-    if (!isNaN(val)) {
-      total += val;
-      parTotal += par;
-      if (val < par) cell.className = 'under-par';
-      else if (val > par) cell.className = 'over-par';
-      else cell.className = 'even-par';
+    function readTableData() {
+      const data = { course: courseSelect.value, players: [] };
+      table.querySelectorAll('tbody tr.player-row').forEach(row => {
+        const name = row.querySelector('input[type="text"]')?.value || '';
+        const scores = Array.from(row.querySelectorAll('input[type="number"]')).map(i => i.value);
+        data.players.push({ name, scores });
+      });
+      return data;
     }
-  });
 
-  row.querySelector('.total').textContent = total || '0';
-  const diff = total - parTotal;
-  row.querySelector('.diff').textContent = total
-    ? (diff > 0 ? `+${diff}` : `${diff}`)
-    : '0';
-}
-
-function updateMiniBoard() {
-  const box = document.getElementById('miniBoard');
-  if (!box) return;
-
-  const rows = Array.from(tbody.querySelectorAll('tr'));
-  const items = rows
-    .map(r => {
-      const name = r.querySelector('input[type="text"]')?.value?.trim() || '';
-      const total = parseInt(r.querySelector('.total')?.textContent || '0', 10) || 0;
-      const diffTxt = (r.querySelector('.diff')?.textContent || '0').toString();
-      return { name, total, diffTxt };
-    })
-    .filter(p => p.name);
-
-  if (!items.length) {
-    box.innerHTML = `<h4>Live Scores</h4>
-      <div class="row"><span class="name">Enter scores to begin</span></div>`;
-    return;
-  }
-
-  // sort by best total
-  items.sort((a, b) => (a.total || 9999) - (b.total || 9999));
-
-  box.innerHTML =
-    `<h4>Live Scores</h4>` +
-    items
-      .map(
-        p => `<div class="row">
-                <span class="name">${p.name}</span>
-                <span class="score">${p.total} (${p.diffTxt})</span>
-              </div>`
-      )
-      .join('');
-}
-
-    // ---------- Firestore helpers ----------
-    const buildDefaultPlayers = () =>
-      Array.from({ length: 4 }, (_, i) => ({ name: `Player ${i + 1}`, scores: [] }));
-
-   function readTableData() {
-  const data = { course: courseSelect.value, players: [] };
-
-  document.querySelectorAll('#scorecard tbody tr.player-row').forEach(row => {
-    const name = row.querySelector('input[type="text"]')?.value || '';
-    const scores = Array.from(row.querySelectorAll('input[type="number"]')).map(i => i.value);
-    data.players.push({ name, scores });
-  });
-
-  return data;
-}
-
+    // Debounced save to avoid chatty writes while typing
+    let saveTimer = null;
+    function scheduleSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveScoresToFirestore, 250);
+    }
 
     async function saveScoresToFirestore() {
       if (applyingRemote || !db) return;
-      const data = readTableData();
-      const ref = doc(db, 'wordleScorecards', data.course);
-      await setDoc(ref, { course: data.course, players: data.players, updatedAt: serverTimestamp() }, { merge: true });
+      try {
+        setSync('is-syncing');
+        const data = readTableData();
+        const ref = doc(db, 'wordleScorecards', data.course);
+        await setDoc(ref, { course: data.course, players: data.players, updatedAt: serverTimestamp() }, { merge: true });
+        setSync('is-synced');
+      } catch (e) {
+        console.error('saveScoresToFirestore error', e);
+        setSync('is-offline', 'Offline');
+      }
     }
 
-    function sameData(a, b) {
-      try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
+    function sameData(a, b) { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; } }
+
+    function renderFromData(docData) {
+      tbody.innerHTML = '';
+
+      // "Player" sticky label row
+      const labelRow = document.createElement('tr');
+      labelRow.classList.add('player-label');
+      const labelCell = document.createElement('td'); labelCell.textContent = 'Player';
+      labelRow.appendChild(labelCell);
+      for (let i = 0; i < 20; i++) labelRow.appendChild(document.createElement('td'));
+      tbody.appendChild(labelRow);
+
+      const raw = Array.isArray(docData?.players) ? docData.players : [];
+      const players = raw.filter(p => {
+        const hasName = !!(p?.name || '').trim();
+        const hasScore = (p?.scores || []).some(s => (s ?? '').toString().trim() !== '');
+        return hasName || hasScore;
+      });
+      while (players.length < 4) players.push({ name: `Player ${players.length + 1}`, scores: [] });
+
+      players.forEach((p, i) => tbody.appendChild(buildPlayerRow(p.name || '', i, p.scores || [])));
     }
-
-   function renderFromData(docData) {
-  tbody.innerHTML = '';
-
-  // "Player" header cell in first column
-  const labelRow = document.createElement('tr');
-  labelRow.classList.add('player-label');
-  const labelCell = document.createElement('td');
-  labelCell.textContent = 'Player';
-  labelRow.appendChild(labelCell);
-  // pad out the header row (18 holes + Total + +/- = 20)
-  for (let i = 0; i < 20; i++) {
-    labelRow.appendChild(document.createElement('td'));
-  }
-  tbody.appendChild(labelRow);
-
-  // normalize incoming players (remove truly empty rows)
-  const raw = Array.isArray(docData?.players) ? docData.players : [];
-  const players = raw.filter(p => {
-    const hasName = !!(p?.name || '').trim();
-    const hasScore = (p?.scores || []).some(s => (s ?? '').toString().trim() !== '');
-    return hasName || hasScore;
-  });
-
-  // ensure at least 4 rows show up
-  while (players.length < 4) {
-    players.push({ name: `Player ${players.length + 1}`, scores: [] });
-  }
-
-  // build rows
-  players.forEach((p, i) => {
-    tbody.appendChild(buildPlayerRow(p.name || '', i, p.scores || []));
-  });
-
-  updateMiniBoard();
-}
-
 
     async function ensureDocExists(courseName) {
       if (!db) return;
@@ -481,7 +469,7 @@ function updateMiniBoard() {
 
     async function attachListenerForCourse(courseName) {
       if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-      if (!db) return; // offline or config missing
+      if (!db) return;
 
       await ensureDocExists(courseName);
       const ref = doc(db, 'wordleScorecards', courseName);
@@ -496,11 +484,36 @@ function updateMiniBoard() {
           { course: serverData.course, players: serverData.players }
         )) {
           applyingRemote = true;
+          setSync('is-syncing');
           currentPar = courses[courseName];
           updateParRow(currentPar);
           renderFromData(serverData);
           applyingRemote = false;
+          setSync('is-synced');
+        } else {
+          setSync('is-synced');
         }
+      }, err => {
+        console.error('onSnapshot error', err);
+        setSync('is-offline', 'Offline');
+      });
+    }
+
+    // Mark “today’s hole”
+    function markCurrentHole() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const doy = Math.floor((now - start) / 86400000);
+      const holeIdx = ((doy % 18) + 1); // 1..18
+
+      document.querySelectorAll('#scorecard .current-hole').forEach(el => el.classList.remove('current-hole'));
+
+      const headerCells = holeHeader.querySelectorAll('th');
+      if (headerCells[holeIdx]) headerCells[holeIdx].classList.add('current-hole');
+
+      document.querySelectorAll('#scorecard tbody tr.player-row').forEach(row => {
+        const td = row.querySelectorAll('td')[holeIdx];
+        if (td) td.classList.add('current-hole');
       });
     }
 
@@ -508,130 +521,128 @@ function updateMiniBoard() {
       currentPar = courses[courseName];
       updateParRow(currentPar);
 
-      // Render something immediately so the table never looks empty
       renderFromData({ players: buildDefaultPlayers() });
-
-      // Then attach realtime sync
       await attachListenerForCourse(courseName);
+      courseNameHeader.textContent = courseName.toUpperCase();
+      markCurrentHole();
     }
 
     // ---------- Boot ----------
     const last = localStorage.getItem('lastCourse');
     courseSelect.value = last && courses[last] ? last : Object.keys(courses)[0];
-    loadScorecard(courseSelect.value);
-
-    updateMiniBoard();
-
     courseSelect.addEventListener('change', e => {
       localStorage.setItem('lastCourse', e.target.value);
       loadScorecard(e.target.value);
     });
+    loadScorecard(courseSelect.value);
 
-// ---------- Clear Scores Button ----------
-document.getElementById('clearBtn').addEventListener('click', async () => {
-  if (!confirm("Clear all player scores for this course?")) return;
+    // Clear Scores
+    document.getElementById('clearBtn').addEventListener('click', async () => {
+      if (!confirm("Clear all player scores for this course?")) return;
 
-const playersCleared = Array.from(
-  document.querySelectorAll('#scorecard tbody tr.player-row')
-).map((row, i) => {
-  const name = row.querySelector('input[type="text"]')?.value || `Player ${i+1}`;
-  return { name, scores: [] };
-});
+      const playersCleared = Array.from(
+        document.querySelectorAll('#scorecard tbody tr.player-row')
+      ).map((row, i) => {
+        const name = row.querySelector('input[type="text"]')?.value || `Player ${i+1}`;
+        return { name, scores: [] };
+      });
 
+      renderFromData({ players: playersCleared });
+      updateParRow(currentPar);
 
-  // Update the table immediately
-  renderFromData({ players: playersCleared });
-  updateParRow(currentPar);
+      try {
+        const ref = doc(db, 'wordleScorecards', courseSelect.value);
+        await setDoc(ref, {
+          course: courseSelect.value,
+          players: playersCleared,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        setSync('is-synced');
+      } catch (err) {
+        console.error("Clear scores failed:", err);
+        setSync('is-offline', 'Offline');
+        alert("Clear failed. Check console.");
+      }
+    });
 
-  updateMiniBoard();
-
-  // Push to Firestore
-  try {
-    const ref = doc(db, 'wordleScorecards', courseSelect.value);
-    await setDoc(ref, {
-      course: courseSelect.value,
-      players: playersCleared,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-    console.log("Scores cleared");
-  } catch (err) {
-    console.error("Clear scores failed:", err);
-    alert("Clear failed. Check console.");
-  }
-});
-    
+    // Clear Names (simple)
+    document.getElementById('clearNamesBtn').addEventListener('click', () => {
+      document.querySelectorAll('#scorecard tbody tr.player-row input[type="text"]').forEach((inp, idx) => {
+        inp.value = `Player ${idx+1}`;
+      });
+      scheduleSave();
+    });
   </script>
 
-<script>
-(function () {
-  const box = document.getElementById('wordBox');
-  if (!box) return;
+  <!-- Word of the Day script (unchanged) -->
+  <script>
+    (function () {
+      const box = document.getElementById('wordBox');
+      if (!box) return;
 
-  const words = [
-    { word: "Aphelion", def: "The point in the orbit of a planet where it is farthest from the sun." },
-  { word: "Bruxism", def: "The involuntary grinding of teeth, especially while sleeping." },
-  { word: "Cacophony", def: "A harsh, discordant mixture of sounds." },
-  { word: "Defenestration", def: "The act of throwing someone or something out of a window." },
-  { word: "Ephemeral", def: "Lasting for a very short time." },
-  { word: "Fugacious", def: "Tending to disappear; fleeting." },
-  { word: "Grawlix", def: "A string of typographical symbols used to represent profanity." },
-  { word: "Halcyon", def: "Denoting a period of time in the past that was idyllically happy and peaceful." },
-  { word: "Ichthyology", def: "The branch of zoology that deals with fish." },
-  { word: "Jentacular", def: "Pertaining to breakfast." },
-  { word: "Kerfuffle", def: "A commotion or fuss." },
-  { word: "Limerence", def: "The state of being infatuated or obsessed with another person." },
-  { word: "Mumpsimus", def: "A stubborn person who insists on making an error in spite of being shown it's wrong." },
-  { word: "Noisome", def: "Having an extremely offensive smell." },
-  { word: "Ostentatious", def: "Characterized by vulgar or pretentious display." },
-  { word: "Peregrinate", def: "To travel or wander around from place to place." },
-  { word: "Quixotic", def: "Exceedingly idealistic; unrealistic and impractical." },
-  { word: "Recumbent", def: "Lying down." },
-  { word: "Susurrus", def: "Whispering, murmuring, or rustling." },
-  { word: "Tmesis", def: "The insertion of a word into another word, like 'abso-bloody-lutely'." },
-  { word: "Ululate", def: "To howl or wail as an expression of strong emotion." },
-  { word: "Vicissitude", def: "A change of circumstances or fortune, typically one that is unwelcome or unpleasant." },
-  { word: "Weltschmerz", def: "A feeling of melancholy and world-weariness." },
-  { word: "Xanthic", def: "Relating to a yellow color." },
-  { word: "Ylem", def: "In Big Bang theory, the primordial matter from which elements are formed." },
-  { word: "Zugzwang", def: "A situation in chess where any move worsens the player's position." },
-  { word: "Agog", def: "Very eager or curious to hear or see something." },
-  { word: "Borborygmus", def: "The rumbling noise produced by the movement of gas in the intestines." },
-  { word: "Catachresis", def: "The incorrect use of a word or phrase." },
-  { word: "Dysania", def: "The state of finding it hard to get out of bed in the morning." },
-  { word: "Eucatastrophe", def: "A sudden and favorable resolution of events in a story." },
-  { word: "Floccinaucinihilipilification", def: "The action of estimating something as worthless." },
-  { word: "Gobbledygook", def: "Language that is meaningless or hard to understand; jargon." },
-  { word: "Hiraeth", def: "A homesickness for a home you can't return to or never had." },
-  { word: "Insouciant", def: "Showing a casual lack of concern; indifferent." },
-  { word: "Jargogle", def: "To confuse or jumble." },
-  { word: "Kakistocracy", def: "Government run by the worst, least qualified, or most unscrupulous citizens." },
-  { word: "Lethologica", def: "The inability to remember the right word." },
-  { word: "Montivagant", def: "Wandering over hills and mountains." },
-  { word: "Nudiustertian", def: "Relating to the day before yesterday." },
-  { word: "Opsimath", def: "A person who begins to learn or study late in life." },
-  { word: "Psithurism", def: "The sound of wind through trees or rustling leaves." },
-  { word: "Quomodocunquize", def: "To make money in any way possible." },
-  { word: "Raconteur", def: "A person who tells anecdotes in a skillful and amusing way." },
-  { word: "Scripturient", def: "Having a strong urge to write." },
-  { word: "Tittynope", def: "A small quantity of something left over." },
-  { word: "Uhtceare", def: "Lying awake before dawn and worrying." },
-  { word: "Vorfreude", def: "The joyful, intense anticipation that comes from imagining future pleasures." },
-  { word: "Wamble", def: "Stomach rumbling or uneasiness." },
-  { word: "Xenization", def: "The act of traveling as a stranger." }
-  ];
+      const words = [
+        { word: "Aphelion", def: "The point in the orbit of a planet where it is farthest from the sun." },
+        { word: "Bruxism", def: "The involuntary grinding of teeth, especially while sleeping." },
+        { word: "Cacophony", def: "A harsh, discordant mixture of sounds." },
+        { word: "Defenestration", def: "The act of throwing someone or something out of a window." },
+        { word: "Ephemeral", def: "Lasting for a very short time." },
+        { word: "Fugacious", def: "Tending to disappear; fleeting." },
+        { word: "Grawlix", def: "A string of typographical symbols used to represent profanity." },
+        { word: "Halcyon", def: "Denoting a period of time in the past that was idyllically happy and peaceful." },
+        { word: "Ichthyology", def: "The branch of zoology that deals with fish." },
+        { word: "Jentacular", def: "Pertaining to breakfast." },
+        { word: "Kerfuffle", def: "A commotion or fuss." },
+        { word: "Limerence", def: "The state of being infatuated or obsessed with another person." },
+        { word: "Mumpsimus", def: "A stubborn person who insists on making an error in spite of being shown it's wrong." },
+        { word: "Noisome", def: "Having an extremely offensive smell." },
+        { word: "Ostentatious", def: "Characterized by vulgar or pretentious display." },
+        { word: "Peregrinate", def: "To travel or wander around from place to place." },
+        { word: "Quixotic", def: "Exceedingly idealistic; unrealistic and impractical." },
+        { word: "Recumbent", def: "Lying down." },
+        { word: "Susurrus", def: "Whispering, murmuring, or rustling." },
+        { word: "Tmesis", def: "The insertion of a word into another word, like 'abso-bloody-lutely'." },
+        { word: "Ululate", def: "To howl or wail as an expression of strong emotion." },
+        { word: "Vicissitude", def: "A change of circumstances or fortune, typically one that is unwelcome or unpleasant." },
+        { word: "Weltschmerz", def: "A feeling of melancholy and world-weariness." },
+        { word: "Xanthic", def: "Relating to a yellow color." },
+        { word: "Ylem", def: "In Big Bang theory, the primordial matter from which elements are formed." },
+        { word: "Zugzwang", def: "A situation in chess where any move worsens the player's position." },
+        { word: "Agog", def: "Very eager or curious to hear or see something." },
+        { word: "Borborygmus", def: "The rumbling noise produced by the movement of gas in the intestines." },
+        { word: "Catachresis", def: "The incorrect use of a word or phrase." },
+        { word: "Dysania", def: "The state of finding it hard to get out of bed in the morning." },
+        { word: "Eucatastrophe", def: "A sudden and favorable resolution of events in a story." },
+        { word: "Floccinaucinihilipilification", def: "The action of estimating something as worthless." },
+        { word: "Gobbledygook", def: "Language that is meaningless or hard to understand; jargon." },
+        { word: "Hiraeth", def: "A homesickness for a home you can't return to or never had." },
+        { word: "Insouciant", def: "Showing a casual lack of concern; indifferent." },
+        { word: "Jargogle", def: "To confuse or jumble." },
+        { word: "Kakistocracy", def: "Government run by the worst, least qualified, or most unscrupulous citizens." },
+        { word: "Lethologica", def: "The inability to remember the right word." },
+        { word: "Montivagant", def: "Wandering over hills and mountains." },
+        { word: "Nudiustertian", def: "Relating to the day before yesterday." },
+        { word: "Opsimath", def: "A person who begins to learn or study late in life." },
+        { word: "Psithurism", def: "The sound of wind through trees or rustling leaves." },
+        { word: "Quomodocunquize", def: "To make money in any way possible." },
+        { word: "Raconteur", def: "A person who tells anecdotes in a skillful and amusing way." },
+        { word: "Scripturient", def: "Having a strong urge to write." },
+        { word: "Tittynope", def: "A small quantity of something left over." },
+        { word: "Uhtceare", def: "Lying awake before dawn and worrying." },
+        { word: "Vorfreude", def: "The joyful, intense anticipation that comes from imagining future pleasures." },
+        { word: "Wamble", def: "Stomach rumbling or uneasiness." },
+        { word: "Xenization", def: "The act of traveling as a stranger." }
+      ];
 
-  // deterministic 'word of the day' so all players see the same one
-  const seed = new Date().toDateString();
-  let hash = 0; for (let i = 0; i < seed.length; i++) hash = (hash*31 + seed.charCodeAt(i)) >>> 0;
-  const pick = words[hash % words.length];
+      const seed = new Date().toDateString();
+      let hash = 0; for (let i = 0; i < seed.length; i++) hash = (hash*31 + seed.charCodeAt(i)) >>> 0;
+      const pick = words[hash % words.length];
 
-  box.innerHTML = `
-    <h4>Word of the Day</h4>
-    <span class="w">${pick.word}</span>
-    <span class="d"> — ${pick.def}</span>
-  `;
-})();
-</script>
-  
+      box.innerHTML = `
+        <h4>Word of the Day</h4>
+        <span class="w">${pick.word}</span>
+        <span class="d"> — ${pick.def}</span>
+      `;
+    })();
+  </script>
 </body>
 </html>
