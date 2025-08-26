@@ -11,7 +11,7 @@
   
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jef's Wonderful Wordle Golf Scorecard</title>
+  <title>Pardle</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
@@ -101,7 +101,7 @@
     #wordBox{
       position: fixed; bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left));
       max-width: 500px; background: #f9f9f9; border: 7px solid #ccc; border-radius: 8px; padding: 12px 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.15); color: #orange; font-size: 14px; line-height: 1.5; z-index: 4;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15); color:orange; font-size: 14px; line-height: 1.5; z-index: 4;
     }
     #wordBox h4 { margin-top: 0; font-size: 16px; font-weight: bold; }
     #wordBox ul { padding-left: 20px; margin: 8px 0 0 0; }
@@ -110,7 +110,7 @@
     #rulesBox {
       position: fixed; bottom: max(12px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right));
       max-width: 500px; background: #f9f9f9; border: 7px solid #ccc; border-radius: 8px; padding: 12px 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.15); color: #222; font-size: 14px; line-height: 1.5; z-index: 4;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15); color:orange; font-size: 14px; line-height: 1.5; z-index: 4;
     }
     #rulesBox h4 { margin-top: 0; font-size: 16px; font-weight: bold; }
     #rulesBox ul { padding-left: 20px; margin: 8px 0 0 0; }
@@ -201,7 +201,7 @@
   })();
 </script>
   
-  <h2>Jef's Wonderful Wordle Golf Scorecard</h2>
+  <h2>Pardle</h2>
 
   <label for="courseSelect">Choose a course:</label>
   <select id="courseSelect"></select>
@@ -234,7 +234,7 @@
 
   <!-- Rules -->
   <div id="rulesBox" aria-live="polite">
-    <h4>🏌️ Wordle Golf Rules</h4>
+    <h4>🏌️ Pardle Rules</h4>
     <ul>
       <li>Each hole = one Wordle puzzle (one per day).</li>
       <li>Your score = number of guesses used to solve the Wordle.</li>
