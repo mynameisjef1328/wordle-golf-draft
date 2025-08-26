@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<style>
+  /* Hide everything until authed; if denied, show ONLY the #deny message */
+  html:not(.authed) body { display: none; }
+  html.denied body { display: block; }
+  html.denied body > :not(#deny) { display: none !important; }
+</style>
+  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jef's Wonderful Wordle Golf Scorecard</title>
@@ -93,7 +101,7 @@
     #wordBox{
       position: fixed; bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left));
       max-width: 500px; background: #f9f9f9; border: 7px solid #ccc; border-radius: 8px; padding: 12px 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.15); color: #222; font-size: 14px; line-height: 1.5; z-index: 4;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15); color: #orange; font-size: 14px; line-height: 1.5; z-index: 4;
     }
     #wordBox h4 { margin-top: 0; font-size: 16px; font-weight: bold; }
     #wordBox ul { padding-left: 20px; margin: 8px 0 0 0; }
@@ -124,8 +132,8 @@
       th { background-color: #555; color: #fff; }
       td, th { border-color: #333; }
       .player-label td { background: #1b1b1b; }
-      #wordBox { background:#1a1a1a; border-color:#333; color:#eee; }
-      #rulesBox { background:#1a1a1a; border-color:#333; color:#eee; }
+      #wordBox { background:#1a1a1a; border-color:orange; color:#eee; }
+      #rulesBox { background:#1a1a1a; border-color:orange; color:#eee; }
       .under-par { background: #0c4; color:#002a00; }
       .over-par  { background: #d66; }
     }
@@ -168,6 +176,31 @@
   </style>
 </head>
 <body>
+
+<script>
+  (function () {
+    const correct = "jef";
+
+    // normalize, trim, and lowercase to avoid iOS autocap / trailing space issues
+    const input = (prompt("Enter password to access this page:") ?? "")
+      .normalize("NFKC")
+      .trim()
+      .toLowerCase();
+
+    if (input === correct.toLowerCase()) {
+      document.documentElement.classList.remove('denied');
+      document.documentElement.classList.add('authed');
+      window.__AUTH_OK__ = true;
+    } else {
+      document.body.innerHTML = '<h1 id="deny">Access Denied</h1>';
+      document.documentElement.classList.remove('authed');
+      document.documentElement.classList.add('denied');
+      window.__AUTH_OK__ = false;
+      throw new Error("Unauthorized access");
+    }
+  })();
+</script>
+  
   <h2>Jef's Wonderful Wordle Golf Scorecard</h2>
 
   <label for="courseSelect">Choose a course:</label>
@@ -214,6 +247,9 @@
 
   <!-- APP -->
   <script type="module">
+
+if (!window.__AUTH_OK__) { throw new Error("Blocked: not authorized"); }
+    
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
