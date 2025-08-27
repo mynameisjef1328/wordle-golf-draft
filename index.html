@@ -388,27 +388,33 @@ if (!window.__AUTH_OK__) { throw new Error("Blocked: not authorized"); }
       });
     }
 
-    function setCellClassForScore(input, par) {
-      const cell = input.parentElement;
-      cell.className = '';
-      const val = parseInt(input.value);
-      if (isNaN(val)) return;
+   function setCellClassForScore(input, par) {
+  const cell = input.parentElement;
+  cell.className = '';
 
-      if (val < par) {
-        cell.classList.add('under-par');
-        setBirdieAnimation(cell, true);
-      } else if (val > par) {
-  cell.className = 'over-par';
+  const val = parseInt(input.value);
+  if (isNaN(val)) return;
 
-  // Trigger Rick Roll (show overlay for 3 seconds)
-  const rick = document.getElementById('rickRoll');
-  rick.style.display = 'flex';
-  setTimeout(() => { rick.style.display = 'none'; }, 3000);
-}
-      } else {
-        cell.classList.add('even-par');
-      }
+  if (val < par) {
+    // Birdie or better
+    cell.classList.add('under-par');
+    setBirdieAnimation(cell, true);
+
+  } else if (val > par) {
+    // Over par + Rick Roll
+    cell.className = 'over-par';
+
+    const rick = document.getElementById('rickRoll');
+    if (rick) {
+      rick.style.display = 'flex';
+      setTimeout(() => { rick.style.display = 'none'; }, 3000);
     }
+
+  } else {
+    // Even par
+    cell.classList.add('even-par');
+  }
+}
 
     function calculateRowTotals(row) {
       const inputs = row.querySelectorAll('input[type="number"]');
