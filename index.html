@@ -388,32 +388,51 @@ if (!window.__AUTH_OK__) { throw new Error("Blocked: not authorized"); }
       });
     }
 
-   function setCellClassForScore(input, par) {
+   // Show/auto-hide the Rick Roll overlay
+function showRickRollOnce() {
+  const rick = document.getElementById('rickRoll');
+  if (!rick) return;
+  rick.style.display = 'flex';
+  clearTimeout(showRickRollOnce._t);
+  showRickRollOnce._t = setTimeout(() => { rick.style.display = 'none'; }, 3000);
+}
+
+function setCellClassForScore(input, par) {
   const cell = input.parentElement;
   cell.className = '';
 
-  const val = parseInt(input.value);
-  if (isNaN(val)) return; // don't do anything if input is empty
+  const raw = (input.value || '').trim();
+  const val = parseInt(raw, 10);
 
+  // Nothing entered → do nothing (prevents firing on load)
+  if (!raw || Number.isNaN(val)) {
+    input.dataset.prevScore = '';
+    return;
+  }
+
+  // Apply coloring + effects
   if (val < par) {
     // Birdie or better
     cell.classList.add('under-par');
     setBirdieAnimation(cell, true);
 
   } else if (val > par) {
-    // Over par → Rick Roll
+    // Over par
     cell.classList.add('over-par');
 
-    const rick = document.getElementById('rickRoll');
-    if (rick) {
-      rick.style.display = 'flex';
-      setTimeout(() => { rick.style.display = 'none'; }, 3000);
+    // Only trigger the GIF the first time it becomes over-par (avoid spam)
+    const prev = parseInt(input.dataset.prevScore ?? '', 10);
+    if (Number.isNaN(prev) || prev <= par) {
+      showRickRollOnce();
     }
 
   } else {
     // Even par
     cell.classList.add('even-par');
   }
+
+  // Remember last numeric value to detect transitions next time
+  input.dataset.prevScore = String(val);
 }
 
     function calculateRowTotals(row) {
