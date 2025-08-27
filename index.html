@@ -393,7 +393,7 @@ if (!window.__AUTH_OK__) { throw new Error("Blocked: not authorized"); }
   cell.className = '';
 
   const val = parseInt(input.value);
-  if (isNaN(val)) return;
+  if (isNaN(val)) return; // don't do anything if input is empty
 
   if (val < par) {
     // Birdie or better
@@ -401,8 +401,8 @@ if (!window.__AUTH_OK__) { throw new Error("Blocked: not authorized"); }
     setBirdieAnimation(cell, true);
 
   } else if (val > par) {
-    // Over par + Rick Roll
-    cell.className = 'over-par';
+    // Over par → Rick Roll
+    cell.classList.add('over-par');
 
     const rick = document.getElementById('rickRoll');
     if (rick) {
