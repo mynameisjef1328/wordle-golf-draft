@@ -168,6 +168,23 @@
       pointer-events: none; animation: birdieEmoji .8s ease-out 1 forwards;
     }
 
+    /* Rick Roll overlay, hidden by default */
+#rickRoll {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+#rickRoll img {
+  max-width: 80%;
+  max-height: 80%;
+  border-radius: 12px;
+}
+
     /* ---------- Sync badge ---------- */
     #syncBadge{
       position: fixed; top: 12px; right: 12px; z-index: 6;
@@ -381,7 +398,13 @@ if (!window.__AUTH_OK__) { throw new Error("Blocked: not authorized"); }
         cell.classList.add('under-par');
         setBirdieAnimation(cell, true);
       } else if (val > par) {
-        cell.classList.add('over-par');
+  cell.className = 'over-par';
+
+  // Trigger Rick Roll (show overlay for 3 seconds)
+  const rick = document.getElementById('rickRoll');
+  rick.style.display = 'flex';
+  setTimeout(() => { rick.style.display = 'none'; }, 3000);
+}
       } else {
         cell.classList.add('even-par');
       }
@@ -699,5 +722,9 @@ if (!window.__AUTH_OK__) { throw new Error("Blocked: not authorized"); }
       `;
     })();
   </script>
+  <!-- Rick Roll overlay -->
+<div id="rickRoll">
+  <img src="https://media.giphy.com/media/Vuw9m5wXviFIQ/giphy.gif" alt="Never Gonna Give You Up" />
+</div>
 </body>
 </html>
