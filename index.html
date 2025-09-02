@@ -120,6 +120,87 @@
     #syncBadge.is-synced{background:orange;}
     #syncBadge.is-syncing{background:#f39c12;}
     #syncBadge.is-offline{background:#e74c3c;}
+
+/* ========= THEME VARIABLES ========= */
+:root{
+  --bg: #f9f9f9;
+  --fg: #111;
+  --head-bg: #999;
+  --head-fg: #fff;
+  --cell-border: #ccc;
+  --accent: #4CAF50;
+}
+
+
+/* Dark Knight */
+body[data-theme="dark"]{
+  --bg:#0e0d15;
+  --fg:#e8e8ff;
+  --head-bg:#2a2540;
+  --head-fg:#e8e8ff;
+  --cell-border:#403a5e;
+  --accent:#00d3ff; /* neon cyan */
+}
+
+/* Wire your existing colors to variables (keeps your old style intact) */
+body{ background: var(--bg); color: var(--fg); }
+th{ background-color: var(--head-bg); color: var(--head-fg); }
+td, th{ border-color: var(--cell-border); }
+.btn:hover{ background-color: var(--accent); border-color: var(--accent); color:#fff; }
+
+/* ========= THEME TOGGLE BUTTON ========= */
+/* Theme toggle — match #syncBadge dimensions */
+.theme-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;                 /* adjust if you want it elsewhere */
+  transform: translateX(calc(-100% - 8px)); /* sit to the left of sync badge */
+  z-index: 6;
+
+  /* Match sync badge typography & pill size */
+  font: 600 12px/1 system-ui, Arial, sans-serif;
+  padding: 6px 10px;           /* same as #syncBadge */
+  border-radius: 14px;         /* same as #syncBadge */
+  background: orange;          /* your requested bg */
+  color: #000;                 /* black text */
+  box-shadow: 0 1px 6px rgba(0,0,0,.15);
+  user-select: none;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Hide the checkbox but keep it accessible */
+.theme-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Knob */
+.theme-toggle .knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #000;            /* black knob */
+  flex: 0 0 auto;
+}
+
+/* Label text */
+.theme-toggle .label {
+  line-height: 12px;           /* keeps the pill at ~24px tall with padding */
+}
+
+/* Optional: different text when checked */
+.theme-toggle input:checked ~ .label::after {
+  content: " Dark";
+}
+.theme-toggle input:not(:checked) ~ .label::after {
+  content: " Light";
+}
+    
   </style>
 </head>
 <body>
@@ -170,7 +251,13 @@
   </table>
 </div>
 
-<div id="syncBadge">Connecting…</div>
+  <label class="theme-toggle" id="themeToggle">
+  <input type="checkbox" id="themeSwitch" />
+  <span class="knob" aria-hidden="true"></span>
+  <span class="label">Theme:</span>
+</label>
+
+<div id="syncBadge" class="">Connecting…</div>
 
 <!-- Word of the Day -->
 <div id="wordBox" aria-live="polite"></div>
@@ -250,6 +337,25 @@ const parRow = document.getElementById('parRow');
 const courseNameHeader = document.getElementById('courseName');
 const courseSelect = document.getElementById('courseSelect');
 const tbody = table.querySelector('tbody');
+
+/* ===== Theme toggle (two modes: default / dark) ===== */
+const themeSwitch = document.getElementById("themeSwitch");
+
+function applyTheme(t){
+  if (t === "dark") {
+    document.body.setAttribute("data-theme", "dark");
+    themeSwitch.checked = true;
+  } else {
+    document.body.removeAttribute("data-theme");
+    themeSwitch.checked = false;
+  }
+  localStorage.setItem("pardleTheme", t);
+}
+
+// toggle when the checkbox changes (the label clicks this automatically)
+themeSwitch.addEventListener("change", () => {
+  applyTheme(themeSwitch.checked ? "dark" : "default");
+});
 
 /* Populate course dropdown */
 Object.keys(courses).forEach(course => {
