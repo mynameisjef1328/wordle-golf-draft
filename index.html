@@ -113,13 +113,30 @@
     #rickRoll img{max-width:80%; max-height:80%; border-radius:12px;}
 
     /* Sync badge */
-    #syncBadge{
-      position:fixed; top:12px; right:12px; z-index:6; font:600 12px/1 system-ui, Arial, sans-serif;
-      padding:6px 10px; border-radius:14px; color:#000; background:#777; box-shadow:0 1px 6px rgba(0,0,0,.15);
-    }
-    #syncBadge.is-synced{background:orange;}
-    #syncBadge.is-syncing{background:#f39c12;}
-    #syncBadge.is-offline{background:#e74c3c;}
+    /* Replace your current #syncBadge block with this */
+#syncBadge{
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  transform: translateX(calc(-100% - 8px));
+  z-index: 6;
+
+  /* make it the same pill as the theme toggle */
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  gap: 0;                  /* keep, or add an icon later */
+  font: 600 12px/12px system-ui, Arial, sans-serif;
+  border-radius: 14px;
+
+  color: #000;
+  background: #777;
+  box-shadow: 0 1px 6px rgba(0,0,0,.15);
+}
+#syncBadge.is-synced{ background: orange; }
+#syncBadge.is-syncing{ background: #f39c12; }
+#syncBadge.is-offline{ background: #e74c3c; }
 
 /* ========= THEME VARIABLES ========= */
 :root{
@@ -158,7 +175,7 @@ td, th{ border-color: var(--cell-border); }
   z-index: 6;
 
   /* Match sync badge typography & pill size */
-  font: 600 12px/1 system-ui, Arial, sans-serif;
+  font: 600 12px/12px system-ui, Arial, sans-serif;
   padding: 6px 10px;           /* same as #syncBadge */
   border-radius: 14px;         /* same as #syncBadge */
   background: orange;          /* your requested bg */
@@ -181,8 +198,8 @@ td, th{ border-color: var(--cell-border); }
 
 /* Knob */
 .theme-toggle .knob {
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: #000;            /* black knob */
   flex: 0 0 auto;
