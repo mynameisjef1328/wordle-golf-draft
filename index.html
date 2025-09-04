@@ -114,12 +114,12 @@
 
     /* Sync badge */
     /* Replace your current #syncBadge block with this */
+/* make the badge participate in the flex row */
 #syncBadge{
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  transform: translateX(calc(-100% - 8px));
-  z-index: 6;
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  transform: none !important;
 
   /* make it the same pill as the theme toggle */
   display: inline-flex;
@@ -165,57 +165,66 @@ th{ background-color: var(--head-bg); color: var(--head-fg); }
 td, th{ border-color: var(--cell-border); }
 .btn:hover{ background-color: var(--accent); border-color: var(--accent); color:#fff; }
 
-/* ========= THEME TOGGLE BUTTON ========= */
-/* Theme toggle — match #syncBadge dimensions */
-.theme-toggle {
+/* Fixed tray that holds both widgets */
+#topRightTray{
   position: fixed;
   top: 12px;
-  right: 12px;                 /* adjust if you want it elsewhere */
-  transform: translateX(calc(-100% - 8px)); /* sit to the left of sync badge */
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;          /* ← spacing BETWEEN them */
   z-index: 6;
+}
 
-  /* Match sync badge typography & pill size */
-  font: 600 12px/12px system-ui, Arial, sans-serif;
-  padding: 6px 10px;           /* same as #syncBadge */
-  border-radius: 14px;         /* same as #syncBadge */
-  background: orange;          /* your requested bg */
-  color: #000;                 /* black text */
-  box-shadow: 0 1px 6px rgba(0,0,0,.15);
-  user-select: none;
-  cursor: pointer;
-
+/* Shared pill look so heights match perfectly */
+.pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  box-sizing: border-box;
+  padding: 6px 10px;           /* controls height */
+  border-radius: 14px;         /* pill */
+  font: 600 12px/1 system-ui, Arial, sans-serif;  /* line-height=1 for equal height */
+  color: #000;
+  box-shadow: 0 1px 6px rgba(0,0,0,.15);
 }
 
-/* Hide the checkbox but keep it accessible */
-.theme-toggle input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+/* Theme toggle uses the pill base */
+.theme-toggle { background: orange; }
+.theme-toggle, #syncBadge { composes: pill; } /* if your build doesn't support 'composes', just duplicate .pill props into both rules */
+
+/* Or just paste the pill props into both: */
+.theme-toggle,
+#syncBadge{
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border-radius: 14px;
+  font: 600 12px/1 system-ui, Arial, sans-serif;
+  color: #000;
+  box-shadow: 0 1px 6px rgba(0,0,0,.15);
 }
 
-/* Knob */
-.theme-toggle .knob {
+/* Sync badge colors/states */
+#syncBadge{ background:#777; }
+#syncBadge.is-synced{ background: orange; }
+#syncBadge.is-syncing{ background: #f39c12; }
+#syncBadge.is-offline{ background: #e74c3c; }
+
+/* Keep the small black dot in the toggle */
+.theme-toggle .knob{
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #000;            /* black knob */
+  background: #000;
   flex: 0 0 auto;
 }
 
-/* Label text */
-.theme-toggle .label {
-  line-height: 12px;           /* keeps the pill at ~24px tall with padding */
-}
-
-/* Optional: different text when checked */
-.theme-toggle input:checked ~ .label::after {
-  content: " Dark";
-}
-.theme-toggle input:not(:checked) ~ .label::after {
-  content: " Light";
+/* The “Theme: Light/Dark” text */
+.theme-toggle .label { line-height: 1; }
+.theme-toggle input{ position:absolute; opacity:0; pointer-events:none; }
+.theme-toggle input:checked ~ .label::after { content:" Dark"; }
+.theme-toggle input:not(:checked) ~ .label::after { content:" Light";
 }
     
   </style>
@@ -268,13 +277,15 @@ td, th{ border-color: var(--cell-border); }
   </table>
 </div>
 
+  <div id="topRightTray">
   <label class="theme-toggle" id="themeToggle">
-  <input type="checkbox" id="themeSwitch" />
-  <span class="knob" aria-hidden="true"></span>
-  <span class="label">Theme:</span>
-</label>
+    <input type="checkbox" id="themeSwitch" />
+    <span class="knob" aria-hidden="true"></span>
+    <span class="label">Theme:</span>
+  </label>
 
-<div id="syncBadge" class="">Connecting…</div>
+  <div id="syncBadge" class="">Connecting…</div>
+</div>
 
 <!-- Word of the Day -->
 <div id="wordBox" aria-live="polite"></div>
